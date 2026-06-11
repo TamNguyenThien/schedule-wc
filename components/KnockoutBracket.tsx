@@ -3,12 +3,13 @@
 import { Info, MousePointer2, Trophy } from "lucide-react";
 import { useMemo, useState } from "react";
 import EmptyState from "./EmptyState";
+import TeamFlag from "./TeamFlag";
 import { cn } from "@/lib/utils";
 import type { BracketMatch, Stage } from "@/types/worldcup";
 
 const rounds = ["Vòng 32 đội", "Vòng 16 đội", "Tứ kết", "Bán kết", "Tranh hạng ba", "Chung kết"] as const;
 type KnockoutRound = Exclude<Stage, "Vòng bảng">;
-type Prediction = { label: string; teamId?: string };
+type Prediction = { label: string; teamId?: string; flag?: string };
 type Predictions = Record<string, Prediction>;
 
 export default function KnockoutBracket({ bracket }: { bracket: BracketMatch[] }) {
@@ -52,7 +53,7 @@ export default function KnockoutBracket({ bracket }: { bracket: BracketMatch[] }
             <option value="">Không highlight</option>
             {availableTeams.map(([teamId, label]) => (
               <option key={teamId} value={teamId}>
-                {label.replace(/^.+?\s/, "")}
+                {label}
               </option>
             ))}
           </select>
@@ -69,10 +70,11 @@ export default function KnockoutBracket({ bracket }: { bracket: BracketMatch[] }
             </div>
           )}
 
-          <div className="grid gap-4 overflow-x-auto pb-2 lg:grid-cols-6">
+          <div className="overflow-x-auto pb-2">
+            <div className="grid min-w-[1180px] grid-cols-6 gap-4">
             {rounds.map((round) => (
-              <div key={round} className="min-w-[220px] space-y-3">
-                <h3 className="rounded-2xl border border-trophy-300/20 bg-trophy-300/10 px-4 py-3 text-center text-sm font-black text-trophy-100">
+              <div key={round} className="space-y-3">
+                <h3 className="sticky top-0 z-10 rounded-2xl border border-trophy-300/20 bg-trophy-300/10 px-4 py-3 text-center text-sm font-black text-trophy-100 backdrop-blur">
                   {round}
                 </h3>
                 {bracket
@@ -90,8 +92,8 @@ export default function KnockoutBracket({ bracket }: { bracket: BracketMatch[] }
                         key={match.id}
                         onClick={() => setSelectedMatchId(match.id)}
                         className={cn(
-                          "rounded-2xl border bg-white/[0.055] p-3 text-sm shadow-glass transition",
-                          selectedMatchId === match.id ? "border-trophy-300/70" : "border-white/10 hover:border-trophy-300/35",
+                          "rounded-2xl border bg-white/[0.065] p-3 text-sm shadow-glass transition hover:-translate-y-0.5",
+                          selectedMatchId === match.id ? "border-trophy-300/70 bg-trophy-300/10" : "border-white/10 hover:border-trophy-300/35",
                           isHighlighted && "ring-2 ring-amber-400/60"
                         )}
                       >
@@ -121,6 +123,7 @@ export default function KnockoutBracket({ bracket }: { bracket: BracketMatch[] }
                   })}
               </div>
             ))}
+            </div>
           </div>
 
           {selectedMatch && (
@@ -164,7 +167,10 @@ function PredictionButton({
         entrant.label === "TBD" && "cursor-not-allowed opacity-60"
       )}
     >
-      {entrant.label}
+      <span className="flex min-w-0 items-center gap-2">
+        {entrant.label !== "TBD" && <TeamFlag flag={entrant.flag} className="h-7 w-7 shrink-0 text-xl" />}
+        <span className="min-w-0 truncate">{entrant.label}</span>
+      </span>
     </button>
   );
 }
@@ -185,8 +191,8 @@ function getEntrant(
   predictions: Predictions
 ): Prediction {
   const base = side === "home"
-    ? { label: match.homeLabel, teamId: match.homeTeamId }
-    : { label: match.awayLabel, teamId: match.awayTeamId };
+    ? { label: match.homeLabel, teamId: match.homeTeamId, flag: match.homeFlag }
+    : { label: match.awayLabel, teamId: match.awayTeamId, flag: match.awayFlag };
 
   if (base.label !== "TBD") return base;
 

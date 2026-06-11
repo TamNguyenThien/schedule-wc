@@ -37,11 +37,17 @@ export default function FeaturedMatches({
 }) {
   const [active, setActive] = useState<FeaturedTab>("hot");
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const teamsById = useMemo(() => new Map(teams.map((team) => [team.id, team])), [teams]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(Date.now()), 60000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   const featured = useMemo(() => {
     const upcoming = [...matches]
-      .filter((match) => match.status !== "finished")
+      .filter((match) => match.status !== "finished" && getMatchTime(match).getTime() >= now)
       .sort(compareMatchDate);
 
     if (active === "favorite") {
@@ -49,19 +55,13 @@ export default function FeaturedMatches({
     }
 
     if (active === "near") {
-      const priority = upcoming.filter(
-        (match) =>
-          favoriteMatchIds.has(match.id) ||
-          favoriteTeamIds.has(match.homeTeamId ?? "") ||
-          favoriteTeamIds.has(match.awayTeamId ?? "")
-      );
-      return [...priority, ...upcoming.filter((match) => !priority.includes(match))].slice(0, 3);
+      return upcoming.slice(0, 3);
     }
 
     return upcoming
       .filter((match) => hotTeamIds.has(match.homeTeamId ?? "") || hotTeamIds.has(match.awayTeamId ?? ""))
       .slice(0, 3);
-  }, [active, favoriteMatchIds, favoriteTeamIds, matches]);
+  }, [active, favoriteMatchIds, matches, now]);
 
   return (
     <div className="group relative flex min-w-[380px] flex-col items-center justify-center overflow-hidden rounded-[24px]  bg-white/5 p-6 text-center shadow-glass backdrop-blur-md transition-all duration-500 sm:min-w-[380px] sm:p-8">
@@ -186,7 +186,7 @@ function CompactFeaturedMatch({
       {prediction && (
         <div className="mt-3 text-center">
           <span className="inline-flex rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-black text-amber-200">
-            Kèo chấp: {prediction.handicap}
+            Kèo chấp1: {prediction.handicap}
           </span>
         </div>
       )}

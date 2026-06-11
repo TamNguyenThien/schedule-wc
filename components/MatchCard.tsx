@@ -1,16 +1,20 @@
 import { Heart, MapPin } from "lucide-react";
 import Link from "next/link";
+import { formatMatchLocation } from "@/lib/matchDetails";
 import { getMatchPrediction } from "@/lib/matchPredictions";
 import { getTeamSlug } from "@/lib/teamProfiles";
 import { formatDate, cn } from "@/lib/utils";
 import type { Match, Team } from "@/types/worldcup";
+import ScorePredictionInput from "./ScorePredictionInput";
 import TeamFlag from "./TeamFlag";
 
 type MatchCardProps = {
   match: Match;
   teams: Team[];
   isFavorite: boolean;
+  userPrediction?: { home: string; away: string };
   onToggleFavorite: (matchId: string) => void;
+  onPredictionChange?: (matchId: string, field: "home" | "away", value: string) => void;
   onSelectMatch?: (match: Match) => void;
 };
 
@@ -24,7 +28,9 @@ export default function MatchCard({
   match,
   teams,
   isFavorite,
+  userPrediction,
   onToggleFavorite,
+  onPredictionChange,
   onSelectMatch
 }: MatchCardProps) {
   const teamsById = new Map(teams.map((team) => [team.id, team]));
@@ -87,16 +93,29 @@ export default function MatchCard({
         <div className="font-bold text-white">
           {formatDate(match.date)} • {match.time}
         </div>
-        {prediction && (
-          <div className="mt-2 inline-flex rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-black text-amber-200">
-            Kèo chấp: {prediction.handicap}
+        {(prediction || onPredictionChange) && (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl  bg-white/5 px-3 py-2">
+            {prediction && (
+              <span className="inline-flex rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-black text-amber-200">
+                Kèo chấp2: {prediction.handicap}
+              </span>
+            )}
+            {onPredictionChange && (
+              <div className="inline-flex items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-400">Dự đoán</span>
+                <ScorePredictionInput
+                  matchId={match.id}
+                  value={userPrediction}
+                  onChange={onPredictionChange}
+                  tone="dark"
+                />
+              </div>
+            )}
           </div>
         )}
         <div className="mt-2 flex items-start gap-2 text-xs leading-5 text-slate-400">
           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-trophy-300" />
-          <span>
-            {match.stadium}, {match.city} / {match.country}
-          </span>
+          <span>{formatMatchLocation(match)}</span>
         </div>
       </div>
     </article>

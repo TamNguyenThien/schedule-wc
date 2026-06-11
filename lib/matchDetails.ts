@@ -27,6 +27,21 @@ export function formatFullDateTime(match: Match) {
   }).format(getMatchDateTime(match));
 }
 
+export function hasKnownMatchLocation(match: Match) {
+  return [match.stadium, match.city, match.country].some((value) => value && value !== "TBD");
+}
+
+export function formatMatchLocation(match: Match) {
+  if (!hasKnownMatchLocation(match)) return "Chưa có dữ liệu địa điểm từ API";
+
+  const stadium = match.stadium !== "TBD" ? match.stadium : "";
+  const city = match.city !== "TBD" ? match.city : "";
+  const country = match.country !== "TBD" ? match.country : "";
+  const place = [city, country].filter(Boolean).join(", ");
+
+  return [stadium, place].filter(Boolean).join(" • ");
+}
+
 export function toCalendarUtcDate(date: string, time: string, plusHours = 0) {
   const utcTime = new Date(`${date}T${time}:00+07:00`);
   utcTime.setHours(utcTime.getHours() + plusHours);
@@ -42,7 +57,7 @@ export function buildGoogleCalendarUrl(match: Match, teamsById: Map<string, Team
     text: `World Cup 2026: ${title}`,
     dates: `${start}/${end}`,
     details: `${match.stage}${match.group ? ` - Bảng ${match.group}` : ""}`,
-    location: `${match.stadium}, ${match.city}, ${match.country}`
+    location: hasKnownMatchLocation(match) ? formatMatchLocation(match) : ""
   });
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
@@ -65,7 +80,7 @@ export function downloadMatchIcs(match: Match, teamsById: Map<string, Team>) {
     `DTEND:${toCalendarUtcDate(match.date, match.time, 2)}`,
     `SUMMARY:World Cup 2026: ${title}`,
     `DESCRIPTION:${match.stage}${match.group ? ` - Bảng ${match.group}` : ""}`,
-    `LOCATION:${match.stadium}, ${match.city}, ${match.country}`,
+    `LOCATION:${hasKnownMatchLocation(match) ? formatMatchLocation(match) : ""}`,
     "END:VEVENT",
     "END:VCALENDAR"
   ].join("\r\n");

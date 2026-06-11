@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { Calendar, CalendarDays, ChevronDown, Clock, Download, Flame, Grid2X2, Heart, List, MapPin, Search, Star, Table2, Trophy, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Calendar, CalendarDays, ChevronDown, Clock, Download, Flame, Grid2X2, Heart, List, Search, Star, Table2, Trophy, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import EmptyState from "./EmptyState";
 import KnockoutBracket from "./KnockoutBracket";
 import MatchCard from "./MatchCard";
+import ScorePredictionInput from "./ScorePredictionInput";
 import TeamFlag from "./TeamFlag";
+import { formatMatchLocation, hasKnownMatchLocation } from "@/lib/matchDetails";
 import { getTeamSlug } from "@/lib/teamProfiles";
 import { cn } from "@/lib/utils";
 import { getMatchPrediction, type MatchPrediction } from "@/lib/matchPredictions";
@@ -15,6 +17,10 @@ import type { BracketMatch, Match, Team } from "@/types/worldcup";
 
 type ScheduleMode = "all" | "date" | "knockout";
 type ViewMode = "table" | "grid";
+type UserPrediction = { home: string; away: string };
+type UserPredictions = Record<string, UserPrediction>;
+
+const userPredictionsKey = "wc2026.userPredictions";
 
 export default function ScheduleBoard({
   matches,
@@ -33,6 +39,7 @@ export default function ScheduleBoard({
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [search, setSearch] = useState("");
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [userPredictions, setUserPredictions] = useState<UserPredictions>({});
 
   const teamsById = useMemo(() => new Map(teams.map((team) => [team.id, team])), [teams]);
   const availableDates = useMemo(
@@ -40,6 +47,28 @@ export default function ScheduleBoard({
     [matches]
   );
   const [selectedDate, setSelectedDate] = useState("");
+
+  useEffect(() => {
+    try {
+      const value = window.localStorage.getItem(userPredictionsKey);
+      if (value) setUserPredictions(JSON.parse(value) as UserPredictions);
+    } catch {
+      setUserPredictions({});
+    }
+  }, []);
+
+  function updateUserPrediction(matchId: string, field: keyof UserPrediction, value: string) {
+    const normalized = value.replace(/\D/g, "").slice(0, 2);
+    setUserPredictions((current) => {
+      const nextPrediction = { ...(current[matchId] ?? { home: "", away: "" }), [field]: normalized };
+      const next = { ...current, [matchId]: nextPrediction };
+
+      if (!nextPrediction.home && !nextPrediction.away) delete next[matchId];
+      window.localStorage.setItem(userPredictionsKey, JSON.stringify(next));
+
+      return next;
+    });
+  }
 
   const filteredMatches = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -151,9 +180,11 @@ export default function ScheduleBoard({
         <DailySchedule
           date={effectiveSelectedDate}
           matches={dateMatches}
-          teamsById={teamsById}
+          teams={teams}
           favoriteMatchIds={favoriteMatchIds}
+          userPredictions={userPredictions}
           onToggleFavorite={onToggleFavorite}
+          onPredictionChange={updateUserPrediction}
           onSelectMatch={setSelectedMatch}
         />
       ) : (
@@ -190,7 +221,9 @@ export default function ScheduleBoard({
               matches={filteredMatches}
               teamsById={teamsById}
               favoriteMatchIds={favoriteMatchIds}
+              userPredictions={userPredictions}
               onToggleFavorite={onToggleFavorite}
+              onPredictionChange={updateUserPrediction}
               onSelectMatch={setSelectedMatch}
             />
           ) : (
@@ -201,7 +234,9 @@ export default function ScheduleBoard({
                   match={match}
                   teams={teams}
                   isFavorite={favoriteMatchIds.has(match.id)}
+                  userPrediction={userPredictions[match.id]}
                   onToggleFavorite={onToggleFavorite}
+                  onPredictionChange={updateUserPrediction}
                   onSelectMatch={setSelectedMatch}
                 />
               ))}
@@ -226,13 +261,17 @@ function ScheduleTable({
   matches,
   teamsById,
   favoriteMatchIds,
+  userPredictions,
   onToggleFavorite,
+  onPredictionChange,
   onSelectMatch
 }: {
   matches: Match[];
   teamsById: Map<string, Team>;
   favoriteMatchIds: Set<string>;
+  userPredictions: UserPredictions;
   onToggleFavorite: (matchId: string) => void;
+  onPredictionChange: (matchId: string, field: keyof UserPrediction, value: string) => void;
   onSelectMatch: (match: Match) => void;
 }) {
   const groups = groupMatchesByDate(matches);
@@ -240,16 +279,17 @@ function ScheduleTable({
   return (
     <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-glass dark:border-white/10 dark:bg-white/5">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1180px] table-fixed border-collapse text-sm">
+        <table className="w-full min-w-[1290px] table-fixed border-collapse text-sm">
           <colgroup>
             <col className="w-[64px]" />
             <col className="w-[105px]" />
             <col className="w-[105px]" />
             <col className="w-[170px]" />
-            <col className="w-[205px]" />
+            <col className="w-[195px]" />
             <col className="w-[72px]" />
-            <col className="w-[205px]" />
+            <col className="w-[195px]" />
             <col className="w-[110px]" />
+            <col className="w-[130px]" />
             <col className="w-[90px]" />
           </colgroup>
           <thead>
@@ -262,6 +302,7 @@ function ScheduleTable({
               <th className="whitespace-nowrap px-3 py-4 text-center">Tỉ số</th>
               <th className="px-4 py-4">Đội 2</th>
               <th className="px-3 py-4 text-center">Kèo chấp</th>
+              <th className="px-3 py-4 text-center">Dự đoán</th>
               <th className="px-3 py-4 text-center">Thao tác</th>
             </tr>
           </thead>
@@ -321,6 +362,13 @@ function ScheduleTable({
                       )}
                     </td>
                     <td className="px-3 py-3">
+                      <ScorePredictionInput
+                        matchId={match.id}
+                        value={userPredictions[match.id]}
+                        onChange={onPredictionChange}
+                      />
+                    </td>
+                    <td className="px-3 py-3">
                       <div className="flex items-center justify-center gap-3 text-slate-900 dark:text-white">
                         <button
                           onClick={(event) => {
@@ -358,23 +406,27 @@ function ScheduleTable({
 function DailySchedule({
   date,
   matches,
-  teamsById,
+  teams,
   favoriteMatchIds,
+  userPredictions,
   onToggleFavorite,
+  onPredictionChange,
   onSelectMatch
 }: {
   date: string;
   matches: Match[];
-  teamsById: Map<string, Team>;
+  teams: Team[];
   favoriteMatchIds: Set<string>;
+  userPredictions: UserPredictions;
   onToggleFavorite: (matchId: string) => void;
+  onPredictionChange: (matchId: string, field: keyof UserPrediction, value: string) => void;
   onSelectMatch: (match: Match) => void;
 }) {
   return (
     <div className="space-y-8">
       <div className="border-b border-slate-200 pb-5 dark:border-white/10">
         <h2 className="inline-flex items-center gap-3 text-lg font-extrabold text-trophy-700 dark:text-trophy-300">
-          <Table2 className="h-6 w-6" />
+          <Grid2X2 className="h-6 w-6" />
           Danh sách trận ngày {formatFullDate(date)}
         </h2>
       </div>
@@ -383,116 +435,20 @@ function DailySchedule({
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
           {matches.map((match) => (
-            <DailyMatchCard
+            <MatchCard
               key={match.id}
               match={match}
-              teamsById={teamsById}
+              teams={teams}
               isFavorite={favoriteMatchIds.has(match.id)}
+              userPrediction={userPredictions[match.id]}
               onToggleFavorite={onToggleFavorite}
+              onPredictionChange={onPredictionChange}
               onSelectMatch={onSelectMatch}
             />
           ))}
         </div>
       )}
     </div>
-  );
-}
-
-function DailyMatchCard({
-  match,
-  teamsById,
-  isFavorite,
-  onToggleFavorite,
-  onSelectMatch
-}: {
-  match: Match;
-  teamsById: Map<string, Team>;
-  isFavorite: boolean;
-  onToggleFavorite: (matchId: string) => void;
-  onSelectMatch: (match: Match) => void;
-}) {
-  const home = teamsById.get(match.homeTeamId ?? "");
-  const away = teamsById.get(match.awayTeamId ?? "");
-  const prediction = getMatchPrediction(match, teamsById);
-
-  return (
-    <article
-      onClick={() => onSelectMatch(match)}
-      className="group relative cursor-pointer rounded-[28px] border border-slate-200 bg-white p-8 shadow-glass transition hover:-translate-y-0.5 hover:border-rose-700/25 dark:border-white/10 dark:bg-white/5"
-    >
-      <span className="absolute right-0 top-0 rounded-bl-2xl rounded-tr-[28px] border border-slate-200 bg-slate-50 px-4 py-2 text-base font-extrabold text-slate-950 dark:border-white/10 dark:bg-white/10 dark:text-white">
-        #{match.matchNumber}
-      </span>
-      <div className="flex items-start justify-between gap-4">
-        <span className="inline-flex whitespace-nowrap rounded-full bg-slate-100 px-4 py-2 text-lg font-extrabold text-slate-950 dark:bg-white/10 dark:text-white">
-          {match.stage}
-          {match.group ? ` • Bảng ${match.group}` : ""}
-        </span>
-        <div className="mr-9 flex items-center gap-5 text-slate-950 dark:text-white">
-          <button
-            onClick={(event) => {
-              event.stopPropagation();
-              openGoogleCalendar(match, teamsById);
-            }}
-            className="transition hover:text-blue-600"
-            aria-label="Thêm vào Google Calendar"
-          >
-            <CalendarDays className="h-6 w-6" />
-          </button>
-          <button
-            onClick={(event) => {
-              event.stopPropagation();
-              onToggleFavorite(match.id);
-            }}
-            className="transition hover:text-rose-700 dark:hover:text-rose-300"
-            aria-label="Yêu thích trận đấu"
-          >
-            <Heart className={cn("h-7 w-7", isFavorite && "fill-current text-rose-700 dark:text-rose-300")} />
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-10 grid grid-cols-[1fr_auto_1fr] items-center gap-7">
-        <DailyTeam team={home} />
-        <div className="rounded-[24px] border border-slate-200 bg-slate-100 px-10 py-7 text-center dark:border-white/10 dark:bg-white/10">
-          <div className="text-2xl font-extrabold tracking-[0.35em] text-slate-950 dark:text-white">- - -</div>
-          <div className="mt-4 text-lg font-extrabold text-trophy-700 dark:text-trophy-300">{match.time}</div>
-          {prediction && (
-            <div className="mt-3 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-sm font-black text-amber-700 dark:text-amber-200">
-              Kèo chấp: {prediction.handicap}
-            </div>
-          )}
-        </div>
-        <DailyTeam team={away} align="right" />
-      </div>
-
-      <div className="mt-9 flex items-center justify-between border-t border-slate-200 pt-5 dark:border-white/10">
-        <div className="inline-flex min-w-0 items-center gap-3 text-lg font-extrabold text-slate-950 dark:text-white">
-          <MapPin className="h-5 w-5 shrink-0 text-trophy-700 dark:text-trophy-300" />
-          <span className="truncate">{match.city !== "TBD" ? match.city : match.stadium}</span>
-        </div>
-        <span className="text-lg font-semibold text-slate-700 dark:text-slate-300">{formatShortDate(match.date)}</span>
-      </div>
-    </article>
-  );
-}
-
-function DailyTeam({ team, align = "left" }: { team?: Team; align?: "left" | "right" }) {
-  const content = (
-    <div className={cn("flex min-w-0 flex-col items-center", align === "right" && "text-right")}>
-      <TeamFlag flag={team?.flag} className="h-16 w-28 rounded-lg text-5xl" />
-      <div className="mt-5 max-w-full truncate text-lg font-extrabold text-slate-950 dark:text-white">
-        {team?.name ?? "TBD"}
-      </div>
-    </div>
-  );
-
-  if (!team) return content;
-
-  return (
-    <Link href={`/teams/${getTeamSlug(team)}`} onClick={(event) => event.stopPropagation()} className="min-w-0 transition hover:opacity-80">
-      {content}
-    </Link>
   );
 }
 
@@ -662,10 +618,10 @@ export function MatchDetailModal({
           </div>
           <div className="md:col-span-2">
             <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
-              Sân vận động & Thành phố
+              Địa điểm
             </h3>
             <p className="mt-2 text-lg font-extrabold text-slate-950 dark:text-white">
-              {match.stadium} ({match.city}, {match.country})
+              {formatMatchLocation(match)}
             </p>
           </div>
         </div>
@@ -800,7 +756,7 @@ function buildGoogleCalendarUrl(match: Match, teamsById: Map<string, Team>) {
     text: `World Cup 2026: ${home} vs ${away}`,
     dates: `${start}/${end}`,
     details: `${match.stage}${match.group ? ` - Bảng ${match.group}` : ""}`,
-    location: `${match.stadium}, ${match.city}, ${match.country}`
+    location: hasKnownMatchLocation(match) ? formatMatchLocation(match) : ""
   });
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
@@ -820,7 +776,7 @@ function downloadMatchIcs(match: Match, teamsById: Map<string, Team>) {
     `DTEND:${toCalendarUtcDate(match.date, match.time, 2)}`,
     `SUMMARY:World Cup 2026: ${home} vs ${away}`,
     `DESCRIPTION:${match.stage}${match.group ? ` - Bảng ${match.group}` : ""}`,
-    `LOCATION:${match.stadium}, ${match.city}, ${match.country}`,
+    `LOCATION:${hasKnownMatchLocation(match) ? formatMatchLocation(match) : ""}`,
     "END:VEVENT",
     "END:VCALENDAR"
   ].join("\r\n");

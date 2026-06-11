@@ -16,6 +16,25 @@ export type Team = {
   flag: string;
   group: string;
   confederation: string;
+  coach?: TeamCoach | null;
+  squad?: TeamPlayer[];
+};
+
+export type TeamCoach = {
+  id?: number;
+  name: string;
+  dateOfBirth?: string | null;
+  nationality?: string | null;
+};
+
+export type TeamPlayer = {
+  id?: number;
+  name: string;
+  position?: string | null;
+  dateOfBirth?: string | null;
+  nationality?: string | null;
+  shirtNumber?: number | null;
+  marketValue?: number | null;
 };
 
 export type Match = {
@@ -53,6 +72,8 @@ export type BracketMatch = {
   slot: number;
   homeLabel: string;
   awayLabel: string;
+  homeFlag?: string;
+  awayFlag?: string;
   homeTeamId?: string;
   awayTeamId?: string;
   homeSource?: string;

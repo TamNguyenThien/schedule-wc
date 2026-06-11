@@ -22,7 +22,11 @@ const round32PairingOrder = [
 
 function teamLabel(teamId: string, teamsById: Map<string, Team>) {
   const team = teamsById.get(teamId);
-  return team ? `${team.flag} ${team.name}` : "TBD";
+  return team ? team.name : "TBD";
+}
+
+function teamFlag(teamId: string, teamsById: Map<string, Team>) {
+  return teamsById.get(teamId)?.flag;
 }
 
 function teamSource(teamId: string, teamsById: Map<string, Team>, standing?: Standing) {
@@ -59,6 +63,8 @@ export function generateKnockoutBracket(
     slot: index + 1,
     homeLabel: teamLabel(qualified[homeIndex].teamId, teamsById),
     awayLabel: teamLabel(qualified[awayIndex].teamId, teamsById),
+    homeFlag: teamFlag(qualified[homeIndex].teamId, teamsById),
+    awayFlag: teamFlag(qualified[awayIndex].teamId, teamsById),
     homeTeamId: qualified[homeIndex].teamId,
     awayTeamId: qualified[awayIndex].teamId,
     homeSource: teamSource(qualified[homeIndex].teamId, teamsById, qualified[homeIndex]),

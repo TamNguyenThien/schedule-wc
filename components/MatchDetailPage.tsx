@@ -11,6 +11,7 @@ import { favoritesStorage } from "@/lib/favoritesStorage";
 import {
   downloadMatchIcs,
   formatFullDateTime,
+  formatMatchLocation,
   getHeadToHead,
   getMatchTitle,
   getRecentForm,
@@ -157,8 +158,7 @@ export default function MatchDetailPage({ matchId }: { matchId: string }) {
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <InfoBlock label="Thời gian Việt Nam" value={formatFullDateTime(match)} />
               <InfoBlock label="Trạng thái" value={match.status === "live" ? "Đang diễn ra" : match.status === "finished" ? "Đã kết thúc" : "Chưa diễn ra"} />
-              <InfoBlock label="Sân vận động" value={match.stadium} />
-              <InfoBlock label="Thành phố" value={`${match.city}, ${match.country}`} />
+              <InfoBlock label="Địa điểm" value={formatMatchLocation(match)} />
             </div>
           </section>
 

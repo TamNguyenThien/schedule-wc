@@ -7,6 +7,21 @@ type FootballDataTeam = {
   shortName?: string;
   tla?: string;
   crest?: string;
+  coach?: {
+    id?: number;
+    name?: string;
+    dateOfBirth?: string | null;
+    nationality?: string | null;
+  } | null;
+  squad?: Array<{
+    id?: number;
+    name: string;
+    position?: string | null;
+    dateOfBirth?: string | null;
+    nationality?: string | null;
+    shirtNumber?: number | null;
+    marketValue?: number | null;
+  }>;
 };
 
 type FootballDataMatch = {
@@ -62,7 +77,24 @@ function normalizeTeam(team: FootballDataTeam, group = ""): Team {
     shortName: team.tla ?? team.shortName ?? team.name.slice(0, 3).toUpperCase(),
     flag: team.crest ?? "🏆",
     group: normalizeGroup(group),
-    confederation: "TBD"
+    confederation: "TBD",
+    coach: team.coach?.name
+      ? {
+          id: team.coach.id,
+          name: team.coach.name,
+          dateOfBirth: team.coach.dateOfBirth,
+          nationality: team.coach.nationality
+        }
+      : null,
+    squad: team.squad?.map((player) => ({
+      id: player.id,
+      name: player.name,
+      position: player.position,
+      dateOfBirth: player.dateOfBirth,
+      nationality: player.nationality,
+      shirtNumber: player.shirtNumber,
+      marketValue: player.marketValue
+    }))
   };
 }
 

@@ -164,7 +164,7 @@ export default function TeamDetailPage() {
         </div>
 
         {activeTab === "overview" && <OverviewTab profile={profile} team={team} />}
-        {activeTab === "squad" && <SquadTab profile={profile} />}
+        {activeTab === "squad" && <SquadTab profile={profile} team={team} />}
         {activeTab === "fixtures" && (
           <FixturesTab
             matches={teamMatches}
@@ -232,17 +232,21 @@ function TeamTabButton({
 }
 
 function OverviewTab({ profile, team }: { profile: TeamProfile; team: Team }) {
+  const coach = team.coach?.name ?? profile.coach;
+
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div className="space-y-6">
         <InfoCard title="Huấn luyện viên trưởng" icon={Users}>
           <div className="flex items-center gap-4 pt-4">
             <div className="grid h-12 w-12 place-items-center rounded-xl border border-rose-500/20 bg-rose-500/10 text-lg font-black text-rose-300">
-              {(profile.coach ?? "TBD").charAt(0)}
+              {(coach ?? "TBD").charAt(0)}
             </div>
             <div>
-              <h4 className="text-base font-black text-white">{profile.coach ?? "Đang cập nhật"}</h4>
-              <p className="text-xs font-bold text-slate-500">Thuyền trưởng chính thức</p>
+              <h4 className="text-base font-black text-white">{coach ?? "Đang cập nhật"}</h4>
+              <p className="text-xs font-bold text-slate-500">
+                {team.coach?.dateOfBirth ? `Sinh ngày ${formatDate(team.coach.dateOfBirth)}` : "Thuyền trưởng chính thức"}
+              </p>
             </div>
           </div>
           <p className="mt-4 border-t border-white/10 pt-3 text-xs font-bold leading-relaxed text-slate-400">
@@ -295,8 +299,53 @@ function OverviewTab({ profile, team }: { profile: TeamProfile; team: Team }) {
   );
 }
 
-function SquadTab({ profile }: { profile: TeamProfile }) {
+function SquadTab({ profile, team }: { profile: TeamProfile; team: Team }) {
+  const squad = team.squad ?? [];
   const players = profile.keyPlayers ?? [];
+
+  if (squad.length > 0) {
+    const grouped = groupSquadByPosition(squad);
+
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-glass">
+          <h3 className="text-sm font-black uppercase tracking-wider text-trophy-300">
+            Danh sách {squad.length} tuyển thủ từ football-data.org
+          </h3>
+          <p className="mt-2 text-sm font-bold text-slate-400">
+            Dữ liệu gồm tên cầu thủ, vị trí, ngày sinh và quốc tịch. Nguồn hiện không cung cấp ảnh cầu thủ.
+          </p>
+        </div>
+
+        {grouped.map((group) => (
+          <section key={group.position} className="space-y-3">
+            <h3 className="inline-flex rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-black text-white">
+              {translatePosition(group.position)} ({group.players.length})
+            </h3>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {group.players.map((player) => (
+                <div key={`${player.id ?? player.name}`} className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-glass">
+                  <div className="flex items-start gap-4">
+                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-rose-500/10 text-sm font-black text-rose-300">
+                      {getInitials(player.name)}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="truncate font-black text-white">{player.name}</h3>
+                      <p className="mt-1 text-xs font-bold text-slate-500">{translatePosition(player.position)}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-2 border-t border-white/10 pt-3 text-xs">
+                    <WikiRow icon={Calendar} label="Ngày sinh" value={player.dateOfBirth ? formatDate(player.dateOfBirth) : "Đang cập nhật"} />
+                    <WikiRow icon={Globe} label="Quốc tịch" value={player.nationality ?? "Đang cập nhật"} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    );
+  }
 
   if (players.length === 0) {
     return <EmptyState message="Đội hình chính thức chưa được công bố." />;
@@ -319,6 +368,49 @@ function SquadTab({ profile }: { profile: TeamProfile }) {
       ))}
     </div>
   );
+}
+
+function groupSquadByPosition(players: NonNullable<Team["squad"]>) {
+  const order = ["Goalkeeper", "Defence", "Midfield", "Offence"];
+  const groups = new Map<string, typeof players>();
+
+  players.forEach((player) => {
+    const position = player.position ?? "Other";
+    groups.set(position, [...(groups.get(position) ?? []), player]);
+  });
+
+  return Array.from(groups.entries())
+    .sort(([a], [b]) => {
+      const indexA = order.indexOf(a);
+      const indexB = order.indexOf(b);
+      return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
+    })
+    .map(([position, groupPlayers]) => ({ position, players: groupPlayers }));
+}
+
+function translatePosition(position?: string | null) {
+  if (position === "Goalkeeper") return "Thủ môn";
+  if (position === "Defence") return "Hậu vệ";
+  if (position === "Midfield") return "Tiền vệ";
+  if (position === "Offence") return "Tiền đạo";
+  return "Vị trí khác";
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(-2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+}
+
+function formatDate(date: string) {
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  }).format(new Date(`${date}T00:00:00`));
 }
 
 function FixturesTab({
