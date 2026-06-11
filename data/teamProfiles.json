@@ -1,0 +1,140 @@
+[
+  {
+    "code": "kr",
+    "aliases": ["kr", "kor", "south-korea", "han-quoc", "hàn-quốc"],
+    "teamIds": ["fd-772", "kor"],
+    "localName": "Hàn Quốc",
+    "countryCode": "kr",
+    "flagUrl": "https://flagcdn.com/w160/kr.png",
+    "coach": "Hong Myung-bo",
+    "federation": "Hiệp hội bóng đá Hàn Quốc (KFA)",
+    "fifaRanking": 22,
+    "bestResult": "Hạng tư (2002)",
+    "overview": "Hàn Quốc là quốc gia châu Á giàu truyền thống nhất tại đấu trường World Cup với kỷ lục nhiều lần tham dự nhất khu vực. Sở hữu nền tảng thể lực mạnh, tốc độ cao và tinh thần thi đấu bền bỉ, họ luôn là đối thủ khó chịu ở các giải đấu lớn.",
+    "history": [
+      { "year": 2002, "host": "Hàn Quốc & Nhật Bản", "result": "Hạng tư" },
+      { "year": 2010, "host": "Nam Phi", "result": "Vòng 1/8" },
+      { "year": 2022, "host": "Qatar", "result": "Vòng 1/8" }
+    ],
+    "keyPlayers": ["Son Heung-min", "Kim Min-jae", "Lee Kang-in"]
+  },
+  {
+    "code": "us",
+    "aliases": ["us", "usa", "united-states", "my", "mỹ"],
+    "teamIds": ["fd-771", "usa"],
+    "localName": "Mỹ",
+    "countryCode": "us",
+    "flagUrl": "https://flagcdn.com/w160/us.png",
+    "coach": "Mauricio Pochettino",
+    "federation": "United States Soccer Federation",
+    "bestResult": "Hạng ba (1930)",
+    "overview": "Mỹ bước vào World Cup 2026 với lợi thế chủ nhà và thế hệ cầu thủ đang chơi nhiều tại châu Âu. Họ được kỳ vọng tạo ra chiến dịch mạnh mẽ trước khán giả nhà.",
+    "history": [
+      { "year": 1930, "host": "Uruguay", "result": "Hạng ba" },
+      { "year": 2002, "host": "Hàn Quốc & Nhật Bản", "result": "Tứ kết" },
+      { "year": 2022, "host": "Qatar", "result": "Vòng 1/8" }
+    ],
+    "keyPlayers": ["Christian Pulisic", "Weston McKennie", "Tyler Adams"]
+  },
+  {
+    "code": "mx",
+    "aliases": ["mx", "mex", "mexico"],
+    "teamIds": ["fd-769", "mex"],
+    "localName": "Mexico",
+    "countryCode": "mx",
+    "flagUrl": "https://flagcdn.com/w160/mx.png",
+    "federation": "Federación Mexicana de Fútbol",
+    "bestResult": "Tứ kết (1970, 1986)",
+    "overview": "Mexico là một trong ba chủ nhà World Cup 2026, nổi bật với lối chơi giàu kỹ thuật, áp lực khán đài mạnh và kinh nghiệm lâu năm tại các vòng chung kết.",
+    "history": [
+      { "year": 1970, "host": "Mexico", "result": "Tứ kết" },
+      { "year": 1986, "host": "Mexico", "result": "Tứ kết" },
+      { "year": 2018, "host": "Nga", "result": "Vòng 1/8" }
+    ],
+    "keyPlayers": ["Hirving Lozano", "Edson Álvarez", "Santiago Giménez"]
+  },
+  {
+    "code": "ca",
+    "aliases": ["ca", "can", "canada"],
+    "teamIds": ["fd-828", "can"],
+    "localName": "Canada",
+    "countryCode": "ca",
+    "flagUrl": "https://flagcdn.com/w160/ca.png",
+    "federation": "Canada Soccer",
+    "bestResult": "Vòng bảng",
+    "overview": "Canada trở lại sân chơi lớn với vị thế chủ nhà và thế hệ tốc độ, thể lực tốt. Đây là cơ hội lớn để bóng đá Canada tạo dấu ấn sâu hơn tại World Cup.",
+    "history": [
+      { "year": 1986, "host": "Mexico", "result": "Vòng bảng" },
+      { "year": 2022, "host": "Qatar", "result": "Vòng bảng" }
+    ],
+    "keyPlayers": ["Alphonso Davies", "Jonathan David", "Tajon Buchanan"]
+  },
+  {
+    "code": "ar",
+    "aliases": ["ar", "arg", "argentina"],
+    "teamIds": ["fd-762", "arg"],
+    "localName": "Argentina",
+    "countryCode": "ar",
+    "flagUrl": "https://flagcdn.com/w160/ar.png",
+    "federation": "Asociación del Fútbol Argentino",
+    "bestResult": "Vô địch (1978, 1986, 2022)",
+    "overview": "Argentina bước vào giải với vị thế nhà vô địch thế giới gần nhất. Đội bóng sở hữu truyền thống kỹ thuật, bản lĩnh knock-out và lượng cổ động viên hùng hậu.",
+    "history": [
+      { "year": 1978, "host": "Argentina", "result": "Vô địch" },
+      { "year": 1986, "host": "Mexico", "result": "Vô địch" },
+      { "year": 2022, "host": "Qatar", "result": "Vô địch" }
+    ],
+    "keyPlayers": ["Lionel Messi", "Lautaro Martínez", "Julián Álvarez"]
+  },
+  {
+    "code": "br",
+    "aliases": ["br", "bra", "brazil"],
+    "teamIds": ["fd-764", "bra"],
+    "localName": "Brazil",
+    "countryCode": "br",
+    "flagUrl": "https://flagcdn.com/w160/br.png",
+    "federation": "Confederação Brasileira de Futebol",
+    "bestResult": "Vô địch 5 lần",
+    "overview": "Brazil là biểu tượng lớn nhất của World Cup với năm chức vô địch. Họ luôn bước vào giải với kỳ vọng cao nhờ kỹ thuật cá nhân, tốc độ và chiều sâu đội hình.",
+    "history": [
+      { "year": 1958, "host": "Thụy Điển", "result": "Vô địch" },
+      { "year": 1970, "host": "Mexico", "result": "Vô địch" },
+      { "year": 2002, "host": "Hàn Quốc & Nhật Bản", "result": "Vô địch" }
+    ],
+    "keyPlayers": ["Vinícius Júnior", "Rodrygo", "Alisson"]
+  },
+  {
+    "code": "fr",
+    "aliases": ["fr", "fra", "france", "phap", "pháp"],
+    "teamIds": ["fd-773", "fra"],
+    "localName": "Pháp",
+    "countryCode": "fr",
+    "flagUrl": "https://flagcdn.com/w160/fr.png",
+    "federation": "Fédération Française de Football",
+    "bestResult": "Vô địch (1998, 2018)",
+    "overview": "Pháp sở hữu một trong những thế hệ cầu thủ giàu chiều sâu nhất thế giới, kết hợp tốc độ, sức mạnh và kinh nghiệm thi đấu đỉnh cao.",
+    "history": [
+      { "year": 1998, "host": "Pháp", "result": "Vô địch" },
+      { "year": 2018, "host": "Nga", "result": "Vô địch" },
+      { "year": 2022, "host": "Qatar", "result": "Á quân" }
+    ],
+    "keyPlayers": ["Kylian Mbappé", "Antoine Griezmann", "Aurélien Tchouaméni"]
+  },
+  {
+    "code": "jp",
+    "aliases": ["jp", "jpn", "japan", "nhat-ban", "nhật-bản"],
+    "teamIds": ["fd-766", "jpn"],
+    "localName": "Nhật Bản",
+    "countryCode": "jp",
+    "flagUrl": "https://flagcdn.com/w160/jp.png",
+    "federation": "Japan Football Association",
+    "bestResult": "Vòng 1/8",
+    "overview": "Nhật Bản là đội tuyển châu Á có hệ thống phát triển ổn định, nổi bật với kỷ luật chiến thuật, pressing thông minh và nhiều cầu thủ thi đấu tại châu Âu.",
+    "history": [
+      { "year": 2002, "host": "Hàn Quốc & Nhật Bản", "result": "Vòng 1/8" },
+      { "year": 2018, "host": "Nga", "result": "Vòng 1/8" },
+      { "year": 2022, "host": "Qatar", "result": "Vòng 1/8" }
+    ],
+    "keyPlayers": ["Takefusa Kubo", "Kaoru Mitoma", "Wataru Endo"]
+  }
+]
