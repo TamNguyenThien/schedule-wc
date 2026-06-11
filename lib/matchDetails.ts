@@ -81,6 +81,7 @@ export function downloadMatchIcs(match: Match, teamsById: Map<string, Team>) {
     `SUMMARY:World Cup 2026: ${title}`,
     `DESCRIPTION:${match.stage}${match.group ? ` - Bảng ${match.group}` : ""}`,
     `LOCATION:${hasKnownMatchLocation(match) ? formatMatchLocation(match) : ""}`,
+    ...buildIcsAlarms(),
     "END:VEVENT",
     "END:VCALENDAR"
   ].join("\r\n");
@@ -92,6 +93,21 @@ export function downloadMatchIcs(match: Match, teamsById: Map<string, Team>) {
   link.download = `wc2026-${match.matchNumber}.ics`;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function buildIcsAlarms() {
+  return [
+    "BEGIN:VALARM",
+    "TRIGGER:-PT1H",
+    "ACTION:DISPLAY",
+    "DESCRIPTION:World Cup 2026 bắt đầu sau 1 giờ",
+    "END:VALARM",
+    "BEGIN:VALARM",
+    "TRIGGER:-PT15M",
+    "ACTION:DISPLAY",
+    "DESCRIPTION:World Cup 2026 bắt đầu sau 15 phút",
+    "END:VALARM"
+  ];
 }
 
 export function getHeadToHead(match: Match, matches: Match[]) {

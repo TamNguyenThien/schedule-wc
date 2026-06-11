@@ -97,7 +97,7 @@ export default function MatchCard({
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl  bg-white/5 px-3 py-2">
             {prediction && (
               <span className="inline-flex rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-black text-amber-200">
-                Kèo chấp2: {prediction.handicap}
+                Chênh lệch: {prediction.handicap}
               </span>
             )}
             {onPredictionChange && (

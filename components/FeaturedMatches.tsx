@@ -108,7 +108,7 @@ export default function FeaturedMatches({
         className="relative mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-black uppercase tracking-wider text-slate-300 transition hover:bg-white/10 hover:text-white disabled:cursor-wait disabled:opacity-70"
       >
         <RefreshCw className={cn("h-3.5 w-3.5", isSyncing && "animate-spin")} />
-        {isSyncing ? "Đang sync" : "Sync dữ liệu"}
+        {isSyncing ? "Đang cập nhật" : "Cập nhật dữ liệu"}
       </button>
       {selectedMatch && (
         <MatchDetailModal
@@ -186,7 +186,7 @@ function CompactFeaturedMatch({
       {prediction && (
         <div className="mt-3 text-center">
           <span className="inline-flex rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-black text-amber-200">
-            Kèo chấp1: {prediction.handicap}
+            Chênh lệch: {prediction.handicap}
           </span>
         </div>
       )}

@@ -27,23 +27,41 @@ export default function ScheduleBoard({
   teams,
   bracket,
   favoriteMatchIds,
+  favoriteTeamIds,
   onToggleFavorite
 }: {
   matches: Match[];
   teams: Team[];
   bracket: BracketMatch[];
   favoriteMatchIds: Set<string>;
+  favoriteTeamIds: Set<string>;
   onToggleFavorite: (matchId: string) => void;
 }) {
   const [mode, setMode] = useState<ScheduleMode>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [search, setSearch] = useState("");
+  const [groupFilter, setGroupFilter] = useState("");
+  const [stageFilter, setStageFilter] = useState("");
+  const [venueFilter, setVenueFilter] = useState("");
+  const [favoriteTeamsOnly, setFavoriteTeamsOnly] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [userPredictions, setUserPredictions] = useState<UserPredictions>({});
 
   const teamsById = useMemo(() => new Map(teams.map((team) => [team.id, team])), [teams]);
   const availableDates = useMemo(
     () => Array.from(new Set(matches.map((match) => match.date))).sort((a, b) => a.localeCompare(b)),
+    [matches]
+  );
+  const availableGroups = useMemo(
+    () => Array.from(new Set(matches.map((match) => match.group).filter(Boolean) as string[])).sort(),
+    [matches]
+  );
+  const availableStages = useMemo(
+    () => Array.from(new Set(matches.map((match) => match.stage))).sort((a, b) => a.localeCompare(b)),
+    [matches]
+  );
+  const availableVenues = useMemo(
+    () => Array.from(new Set(matches.map((match) => match.stadium).filter((venue) => venue !== "TBD"))).sort((a, b) => a.localeCompare(b)),
     [matches]
   );
   const [selectedDate, setSelectedDate] = useState("");
@@ -78,18 +96,32 @@ export default function ScheduleBoard({
         if (mode === "knockout") return match.stage !== "Vòng bảng";
         const home = teamsById.get(match.homeTeamId ?? "");
         const away = teamsById.get(match.awayTeamId ?? "");
-        return (
+        const matchesSearch =
           normalizedSearch.length === 0 ||
           home?.name.toLowerCase().includes(normalizedSearch) ||
           away?.name.toLowerCase().includes(normalizedSearch) ||
           home?.shortName.toLowerCase().includes(normalizedSearch) ||
           away?.shortName.toLowerCase().includes(normalizedSearch) ||
           match.stadium.toLowerCase().includes(normalizedSearch) ||
-          match.city.toLowerCase().includes(normalizedSearch)
+          match.city.toLowerCase().includes(normalizedSearch);
+        const matchesGroup = !groupFilter || match.group === groupFilter;
+        const matchesStage = !stageFilter || match.stage === stageFilter;
+        const matchesVenue = !venueFilter || match.stadium === venueFilter;
+        const matchesFavoriteTeams =
+          !favoriteTeamsOnly ||
+          favoriteTeamIds.has(match.homeTeamId ?? "") ||
+          favoriteTeamIds.has(match.awayTeamId ?? "");
+
+        return (
+          matchesSearch &&
+          matchesGroup &&
+          matchesStage &&
+          matchesVenue &&
+          matchesFavoriteTeams
         );
       })
       .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`) || a.matchNumber - b.matchNumber);
-  }, [matches, mode, search, teamsById]);
+  }, [favoriteTeamIds, favoriteTeamsOnly, groupFilter, matches, mode, search, stageFilter, teamsById, venueFilter]);
 
   const effectiveSelectedDate = selectedDate || availableDates[0] || "";
   const dateMatches = useMemo(
@@ -114,7 +146,8 @@ export default function ScheduleBoard({
           `DTSTART:${start}`,
           `DTEND:${end}`,
           `SUMMARY:World Cup 2026 - ${home} vs ${away}`,
-          `LOCATION:${match.stadium}, ${match.city}, ${match.country}`,
+          `LOCATION:${hasKnownMatchLocation(match) ? formatMatchLocation(match) : ""}`,
+          ...buildIcsAlarms(),
           "END:VEVENT"
         ];
       }),
@@ -168,9 +201,47 @@ export default function ScheduleBoard({
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Tìm kiếm quốc gia, SVĐ..."
+            placeholder="Tìm đội tuyển, sân vận động, thành phố..."
             className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-14 text-base font-semibold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-rose-700/40 dark:border-white/10 dark:bg-white/5 dark:text-white"
           />
+        </div>
+      )}
+
+      {mode !== "knockout" && (
+        <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
+          <FilterSelect label="Bảng đấu" value={groupFilter} onChange={setGroupFilter}>
+            <option value="">Tất cả bảng</option>
+            {availableGroups.map((group) => (
+              <option key={group} value={group}>
+                Bảng {group}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect label="Vòng đấu" value={stageFilter} onChange={setStageFilter}>
+            <option value="">Tất cả vòng</option>
+            {availableStages.map((stage) => (
+              <option key={stage} value={stage}>
+                {stage}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect label="Sân vận động" value={venueFilter} onChange={setVenueFilter}>
+            <option value="">Tất cả sân</option>
+            {availableVenues.map((venue) => (
+              <option key={venue} value={venue}>
+                {venue}
+              </option>
+            ))}
+          </FilterSelect>
+          <label className="flex h-[58px] items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-950 shadow-glass dark:border-white/10 dark:bg-white/5 dark:text-white">
+            Đội tôi theo dõi
+            <input
+              type="checkbox"
+              checked={favoriteTeamsOnly}
+              onChange={(event) => setFavoriteTeamsOnly(event.target.checked)}
+              className="h-5 w-5 accent-rose-700"
+            />
+          </label>
         </div>
       )}
 
@@ -301,7 +372,7 @@ function ScheduleTable({
               <th className="px-4 py-4 text-right">Đội 1</th>
               <th className="whitespace-nowrap px-3 py-4 text-center">Tỉ số</th>
               <th className="px-4 py-4">Đội 2</th>
-              <th className="px-3 py-4 text-center">Kèo chấp</th>
+              <th className="px-3 py-4 text-center">Chênh lệch</th>
               <th className="px-3 py-4 text-center">Dự đoán</th>
               <th className="px-3 py-4 text-center">Thao tác</th>
             </tr>
@@ -471,6 +542,32 @@ function TeamCell({ team, align = "left" }: { team?: Team; align?: "left" | "rig
     >
       {content}
     </Link>
+  );
+}
+
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  children
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="relative block">
+      <span className="sr-only">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-[58px] w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 pr-10 text-sm font-black text-slate-950 shadow-glass outline-none transition focus:border-rose-700/40 dark:border-white/10 dark:bg-white/5 dark:text-white"
+      >
+        {children}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
+    </label>
   );
 }
 
@@ -703,7 +800,7 @@ function CompactPrediction({
         <CompactProbability label={awayLabel} value={prediction.awayWin} />
       </div>
       <p className="mt-3 text-sm font-bold text-slate-700 dark:text-slate-300">
-        Tỉ số dự kiến {prediction.projectedScore} • Kèo chấp {prediction.handicap} • Độ tin cậy {prediction.confidence}%
+        Tỉ số dự kiến {prediction.projectedScore} • Chênh lệch {prediction.handicap} • Độ tin cậy {prediction.confidence}%
       </p>
     </div>
   );
@@ -777,6 +874,7 @@ function downloadMatchIcs(match: Match, teamsById: Map<string, Team>) {
     `SUMMARY:World Cup 2026: ${home} vs ${away}`,
     `DESCRIPTION:${match.stage}${match.group ? ` - Bảng ${match.group}` : ""}`,
     `LOCATION:${hasKnownMatchLocation(match) ? formatMatchLocation(match) : ""}`,
+    ...buildIcsAlarms(),
     "END:VEVENT",
     "END:VCALENDAR"
   ].join("\r\n");
@@ -794,6 +892,21 @@ function toCalendarUtcDate(date: string, time: string, plusHours = 0) {
   const utcTime = new Date(`${date}T${time}:00+07:00`);
   utcTime.setHours(utcTime.getHours() + plusHours);
   return utcTime.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+}
+
+function buildIcsAlarms() {
+  return [
+    "BEGIN:VALARM",
+    "TRIGGER:-PT1H",
+    "ACTION:DISPLAY",
+    "DESCRIPTION:World Cup 2026 bắt đầu sau 1 giờ",
+    "END:VALARM",
+    "BEGIN:VALARM",
+    "TRIGGER:-PT15M",
+    "ACTION:DISPLAY",
+    "DESCRIPTION:World Cup 2026 bắt đầu sau 15 phút",
+    "END:VALARM"
+  ];
 }
 
 function formatFullDate(date: string) {

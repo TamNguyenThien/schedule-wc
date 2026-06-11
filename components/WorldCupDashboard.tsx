@@ -130,6 +130,7 @@ export default function WorldCupDashboard() {
                 teams={teams}
                 bracket={bracket}
                 favoriteMatchIds={favoriteMatchIds}
+                favoriteTeamIds={favoriteTeamIds}
                 onToggleFavorite={toggleFavoriteMatch}
               />
             )}
