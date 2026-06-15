@@ -64,9 +64,9 @@ export default function FeaturedMatches({
   }, [active, favoriteMatchIds, matches, now]);
 
   return (
-    <div className="group relative flex min-w-[380px] flex-col items-center justify-center overflow-hidden rounded-[24px]  bg-white/5 p-6 text-center shadow-glass backdrop-blur-md transition-all duration-500 sm:min-w-[380px] sm:p-8">
+    <div className="group relative flex w-full min-w-0 flex-col items-center justify-center overflow-hidden rounded-3xl bg-white/5 p-4 text-center shadow-glass backdrop-blur-md transition-all duration-500 sm:max-w-[420px] sm:p-8 md:min-w-[380px]">
       <div className="absolute inset-0 bg-gradient-to-b from-amber-500/10 via-transparent to-transparent opacity-60 transition-transform duration-500 group-hover:scale-110" />
-      <span className="relative mb-4 block text-sm font-black uppercase tracking-widest text-amber-400">
+      <span className="relative mb-3 block text-xs font-black uppercase tracking-wider text-amber-400 sm:mb-4 sm:text-sm sm:tracking-widest">
         {active === "near" ? "⏱ TRẬN TIẾP THEO" : active === "favorite" ? "★ TRẬN YÊU THÍCH" : "🔥 TRẬN ĐẤU HOT NHẤT 🔥"}
       </span>
       {featured.length === 0 ? (
@@ -85,13 +85,13 @@ export default function FeaturedMatches({
           ))}
         </div>
       )}
-      <div className="relative mt-4 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 p-1 shadow-glass backdrop-blur-md">
+      <div className="relative mt-4 flex w-full items-center gap-1 rounded-2xl border border-white/10 bg-white/5 p-1 shadow-glass backdrop-blur-md sm:w-auto sm:rounded-full sm:gap-1.5">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActive(tab.id)}
             className={cn(
-              "rounded-xl px-4 py-2 text-sm font-bold transition",
+              "flex-1 rounded-xl px-3 py-2 text-sm font-bold transition sm:flex-none sm:px-4",
               active === tab.id
                 ? "tab-active-text bg-amber-500 shadow-glow"
                 : "text-slate-400 hover:text-white"
@@ -105,7 +105,7 @@ export default function FeaturedMatches({
         type="button"
         onClick={onSync}
         disabled={isSyncing}
-        className="relative mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-black uppercase tracking-wider text-slate-300 transition hover:bg-white/10 hover:text-white disabled:cursor-wait disabled:opacity-70"
+        className="relative mt-3 inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-slate-300 transition hover:bg-white/10 hover:text-white disabled:cursor-wait disabled:opacity-70 sm:text-sm"
       >
         <RefreshCw className={cn("h-3.5 w-3.5", isSyncing && "animate-spin")} />
         {isSyncing ? "Đang cập nhật" : "Cập nhật dữ liệu"}
@@ -154,7 +154,7 @@ function CompactFeaturedMatch({
       className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-left transition hover:border-amber-400/40 hover:bg-white/10"
     >
       <div className="mb-3 flex items-center justify-between gap-3">
-        <span className="text-sm font-black uppercase tracking-widest text-slate-400">
+        <span className="min-w-0 text-xs font-black uppercase tracking-wider text-slate-400 sm:text-sm sm:tracking-widest">
           Trận {match.matchNumber} • {match.stage}
         </span>
         <button

@@ -164,9 +164,9 @@ export default function ScheduleBoard({
   }
 
   return (
-    <div className="space-y-7">
-      <div className="border-b border-slate-200 pb-0 dark:border-white/10">
-        <div className="flex flex-wrap gap-8">
+    <div className="space-y-5 sm:space-y-7">
+      <div className="border-b border-slate-200 pb-2 dark:border-white/10 sm:pb-0">
+        <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-8">
           <ScheduleModeButton active={mode === "all"} onClick={() => setMode("all")} icon={Table2}>
             Tất cả trận đấu
           </ScheduleModeButton>
@@ -181,11 +181,11 @@ export default function ScheduleBoard({
 
       {mode === "date" ? (
         <div className="relative w-full max-w-[420px]">
-          <CalendarDays className="absolute left-5 top-1/2 h-6 w-6 -translate-y-1/2 text-rose-700" />
+          <CalendarDays className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-rose-700 sm:left-5 sm:h-6 sm:w-6" />
           <select
             value={effectiveSelectedDate}
             onChange={(event) => setSelectedDate(event.target.value)}
-            className="h-16 w-full appearance-none rounded-[24px] border border-slate-200 bg-white px-16 pr-12 text-lg font-extrabold text-slate-950 shadow-glass outline-none dark:border-white/10 dark:bg-white/5 dark:text-white"
+            className="h-14 w-full appearance-none rounded-2xl border border-slate-200 bg-white pl-12 pr-10 text-base font-extrabold text-slate-950 shadow-glass outline-none dark:border-white/10 dark:bg-white/5 dark:text-white sm:h-16 sm:rounded-[24px] sm:px-16 sm:pr-12 sm:text-lg"
           >
             {availableDates.map((date) => (
               <option key={date} value={date}>
@@ -193,22 +193,22 @@ export default function ScheduleBoard({
               </option>
             ))}
           </select>
-          <ChevronDown className="pointer-events-none absolute right-5 top-1/2 h-6 w-6 -translate-y-1/2 text-slate-950 dark:text-white" />
+          <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-950 dark:text-white sm:right-5 sm:h-6 sm:w-6" />
         </div>
       ) : mode !== "knockout" && (
         <div className="relative">
-          <Search className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
+          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500 sm:left-5" />
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Tìm đội tuyển, sân vận động, thành phố..."
-            className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-14 text-base font-semibold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-rose-700/40 dark:border-white/10 dark:bg-white/5 dark:text-white"
+            placeholder="Tìm đội, sân, thành phố..."
+            className="h-[52px] w-full rounded-2xl border border-slate-200 bg-white px-12 py-3 text-base font-semibold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-rose-700/40 dark:border-white/10 dark:bg-white/5 dark:text-white sm:h-14 sm:px-14"
           />
         </div>
       )}
 
       {mode !== "knockout" && (
-        <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
+        <div className="grid gap-2.5 md:grid-cols-[1fr_1fr_1fr_auto]">
           <FilterSelect label="Bảng đấu" value={groupFilter} onChange={setGroupFilter}>
             <option value="">Tất cả bảng</option>
             {availableGroups.map((group) => (
@@ -233,7 +233,7 @@ export default function ScheduleBoard({
               </option>
             ))}
           </FilterSelect>
-          <label className="flex h-[58px] items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-950 shadow-glass dark:border-white/10 dark:bg-white/5 dark:text-white">
+          <label className="flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-950 shadow-glass dark:border-white/10 dark:bg-white/5 dark:text-white sm:h-[58px]">
             Đội tôi theo dõi
             <input
               type="checkbox"
@@ -265,7 +265,7 @@ export default function ScheduleBoard({
               <Table2 className="h-5 w-5" />
               Tất Cả Trận Đấu ({filteredMatches.length} trận)
             </h2>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <div className="inline-flex rounded-2xl border border-slate-200 bg-slate-50 p-1 dark:border-white/10 dark:bg-white/5">
                 <ViewButton active={viewMode === "table"} onClick={() => setViewMode("table")} icon={List}>
                   Bảng
@@ -276,7 +276,7 @@ export default function ScheduleBoard({
               </div>
               <button
                 onClick={downloadIcs}
-                className="inline-flex h-10 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-sm font-extrabold text-slate-900 transition hover:border-trophy-500/50 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                className="inline-flex min-h-10 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-extrabold text-slate-900 transition hover:border-trophy-500/50 dark:border-white/10 dark:bg-white/5 dark:text-white"
               >
                 <CalendarDays className="h-4 w-4 text-trophy-700 dark:text-trophy-300" />
                 Tải lịch thi đấu (.ics)
@@ -346,10 +346,26 @@ function ScheduleTable({
   onSelectMatch: (match: Match) => void;
 }) {
   const groups = groupMatchesByDate(matches);
+  const teams = Array.from(teamsById.values());
 
   return (
-    <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-glass dark:border-white/10 dark:bg-white/5">
-      <div className="overflow-x-auto">
+    <>
+      <div className="grid gap-3 md:hidden">
+        {matches.map((match) => (
+          <MatchCard
+            key={match.id}
+            match={match}
+            teams={teams}
+            isFavorite={favoriteMatchIds.has(match.id)}
+            userPrediction={userPredictions[match.id]}
+            onToggleFavorite={onToggleFavorite}
+            onPredictionChange={onPredictionChange}
+            onSelectMatch={onSelectMatch}
+          />
+        ))}
+      </div>
+      <div className="hidden overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-glass dark:border-white/10 dark:bg-white/5 md:block">
+        <div className="overflow-x-auto">
         <table className="w-full min-w-[1290px] table-fixed border-collapse text-sm">
           <colgroup>
             <col className="w-[64px]" />
@@ -469,8 +485,9 @@ function ScheduleTable({
             )}
           </tbody>
         </table>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -494,17 +511,17 @@ function DailySchedule({
   onSelectMatch: (match: Match) => void;
 }) {
   return (
-    <div className="space-y-8">
-      <div className="border-b border-slate-200 pb-5 dark:border-white/10">
-        <h2 className="inline-flex items-center gap-3 text-lg font-extrabold text-trophy-700 dark:text-trophy-300">
-          <Grid2X2 className="h-6 w-6" />
+    <div className="space-y-5 sm:space-y-8">
+      <div className="border-b border-slate-200 pb-4 dark:border-white/10 sm:pb-5">
+        <h2 className="inline-flex items-center gap-2 text-base font-extrabold text-trophy-700 dark:text-trophy-300 sm:gap-3 sm:text-lg">
+          <Grid2X2 className="h-5 w-5 sm:h-6 sm:w-6" />
           Danh sách trận ngày {formatFullDate(date)}
         </h2>
       </div>
       {matches.length === 0 ? (
         <EmptyState message="Không có trận đấu trong ngày đã chọn." />
       ) : (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-3 sm:gap-6 lg:grid-cols-2">
           {matches.map((match) => (
             <MatchCard
               key={match.id}
@@ -562,7 +579,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-[58px] w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 pr-10 text-sm font-black text-slate-950 shadow-glass outline-none transition focus:border-rose-700/40 dark:border-white/10 dark:bg-white/5 dark:text-white"
+        className="min-h-12 w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 pr-10 text-sm font-black text-slate-950 shadow-glass outline-none transition focus:border-rose-700/40 dark:border-white/10 dark:bg-white/5 dark:text-white sm:h-[58px]"
       >
         {children}
       </select>
@@ -586,12 +603,12 @@ function ScheduleModeButton({
     <button
       onClick={onClick}
       className={cn(
-        "relative inline-flex items-center gap-3 rounded-2xl px-4 py-3 text-base font-extrabold transition",
+        "relative inline-flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-center text-[11px] font-extrabold leading-tight transition sm:flex-row sm:gap-3 sm:px-4 sm:py-3 sm:text-base",
         active ? "tab-active-text bg-rose-700 shadow-glow" : "text-slate-900 hover:bg-slate-100 hover:text-rose-700 dark:text-white dark:hover:bg-white/10 dark:hover:text-rose-300"
       )}
     >
       <Icon className="h-5 w-5" />
-      {children}
+      <span className="leading-tight">{children}</span>
     </button>
   );
 }
@@ -658,49 +675,49 @@ export function MatchDetailModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto px-4 py-8 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto px-3 py-4 backdrop-blur-sm sm:items-center sm:px-4 sm:py-8"
       style={{ backgroundColor: "rgba(15, 23, 42, 0.62)" }}
     >
-      <div className="relative my-auto w-full max-w-2xl rounded-[34px] border border-slate-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-slate-950 sm:p-10">
+      <div className="relative my-auto w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-white/10 dark:bg-slate-950 sm:rounded-[34px] sm:p-10">
         <button
           onClick={onClose}
-          className="absolute right-8 top-8 grid h-10 w-10 place-items-center rounded-full text-slate-950 transition hover:bg-slate-100 dark:text-white dark:hover:bg-white/10"
+          className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full text-slate-950 transition hover:bg-slate-100 dark:text-white dark:hover:bg-white/10 sm:right-8 sm:top-8"
           aria-label="Đóng"
         >
-          <X className="h-7 w-7" />
+          <X className="h-6 w-6 sm:h-7 sm:w-7" />
         </button>
 
-        <div className="mb-8 inline-flex rounded-full border border-slate-200 bg-slate-100 px-5 py-2 text-base font-extrabold uppercase tracking-wide text-slate-950 dark:border-white/10 dark:bg-white/10 dark:text-white">
+        <div className="mb-5 max-w-[calc(100%-3rem)] rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-extrabold uppercase tracking-wide text-slate-950 dark:border-white/10 dark:bg-white/10 dark:text-white sm:mb-8 sm:inline-flex sm:px-5 sm:text-base">
           🏆 {match.stage}
           {match.group ? ` • Bảng ${match.group}` : ""}
         </div>
 
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-6">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-6">
           <ModalTeam team={home} align="center" />
-          <div className="rounded-[24px] border border-slate-200 bg-slate-100 px-10 py-7 text-center dark:border-white/10 dark:bg-white/5">
-            <div className="text-lg font-extrabold tracking-[0.35em] text-slate-950 dark:text-white">
+          <div className="rounded-2xl border border-slate-200 bg-slate-100 px-3 py-3 text-center dark:border-white/10 dark:bg-white/5 sm:rounded-[24px] sm:px-10 sm:py-7">
+            <div className="text-base font-extrabold tracking-wide text-slate-950 dark:text-white sm:text-lg sm:tracking-[0.35em]">
               {match.homeScore ?? "-"} {match.homeScore === null && match.awayScore === null ? "" : ":"} {match.awayScore ?? "-"}
             </div>
-            <div className="mt-3 inline-flex items-center gap-2 text-base font-bold text-trophy-700 dark:text-trophy-300">
-              <Clock className="h-5 w-5" />
+            <div className="mt-2 inline-flex items-center gap-1.5 text-sm font-bold text-trophy-700 dark:text-trophy-300 sm:mt-3 sm:gap-2 sm:text-base">
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
               {match.time}
             </div>
           </div>
           <ModalTeam team={away} align="center" />
         </div>
 
-        <div className="my-9 border-t border-slate-200 dark:border-white/10" />
+        <div className="my-5 border-t border-slate-200 dark:border-white/10 sm:my-9" />
 
         {prediction && (
           <CompactPrediction prediction={prediction} homeLabel={home?.shortName ?? "Đội 1"} awayLabel={away?.shortName ?? "Đội 2"} />
         )}
 
-        <div className="grid gap-5 rounded-[24px] border border-slate-200 bg-slate-50 p-6 dark:border-white/10 dark:bg-white/5 md:grid-cols-2">
+        <div className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5 md:grid-cols-2 sm:rounded-[24px] sm:p-6">
           <div>
             <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
               Thời gian (Địa phương)
             </h3>
-            <p className="mt-2 text-lg font-extrabold text-slate-950 dark:text-white">
+            <p className="mt-2 text-base font-extrabold text-slate-950 dark:text-white sm:text-lg">
               {formatFullDate(match.date)} {match.time}
             </p>
           </div>
@@ -708,7 +725,7 @@ export function MatchDetailModal({
             <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
               Trạng thái trận đấu
             </h3>
-            <p className="mt-2 inline-flex items-center gap-2 text-lg font-extrabold text-slate-950 dark:text-white">
+            <p className="mt-2 inline-flex items-center gap-2 text-base font-extrabold text-slate-950 dark:text-white sm:text-lg">
               <span className="h-3 w-3 rounded-full bg-amber-500" />
               {match.status === "finished" ? "Đã kết thúc" : match.status === "live" ? "Đang diễn ra" : "Chưa diễn ra"}
             </p>
@@ -717,39 +734,39 @@ export function MatchDetailModal({
             <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
               Địa điểm
             </h3>
-            <p className="mt-2 text-lg font-extrabold text-slate-950 dark:text-white">
+            <p className="mt-2 text-base font-extrabold text-slate-950 dark:text-white sm:text-lg">
               {formatMatchLocation(match)}
             </p>
           </div>
         </div>
 
-        <div className="mt-6 rounded-[24px] border border-slate-200 bg-slate-50 p-6 dark:border-white/10 dark:bg-white/5">
+        <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5 sm:mt-6 sm:rounded-[24px] sm:p-6">
           <h3 className="inline-flex items-center gap-2 text-sm font-extrabold uppercase tracking-wider text-trophy-700 dark:text-trophy-300">
             <CalendarDays className="h-5 w-5" />
             Đồng bộ lịch thi đấu
           </h3>
-          <p className="mt-4 text-base font-semibold leading-7 text-slate-950 dark:text-white">
+          <p className="mt-3 text-sm font-semibold leading-6 text-slate-950 dark:text-white sm:mt-4 sm:text-base sm:leading-7">
             Thêm trận đấu này vào Google Calendar hoặc tải file (.ics) cho Apple Calendar, Outlook để
             nhận nhắc hẹn và không bỏ lỡ trận cầu.
           </p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          <div className="mt-5 grid gap-3 sm:mt-6 sm:grid-cols-3 sm:gap-4">
             <Link
               href={`/matches/${match.id}`}
-              className="inline-flex h-14 items-center justify-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 text-base font-extrabold text-amber-700 transition hover:bg-amber-100"
+              className="inline-flex min-h-12 items-center justify-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-extrabold text-amber-700 transition hover:bg-amber-100 sm:h-14 sm:text-base"
             >
               <Trophy className="h-5 w-5" />
               Trang chi tiết
             </Link>
             <button
               onClick={() => openGoogleCalendar(match, teamsById)}
-              className="inline-flex h-14 items-center justify-center gap-3 rounded-2xl border border-blue-200 bg-blue-50 text-base font-extrabold text-blue-700 transition hover:bg-blue-100"
+              className="inline-flex min-h-12 items-center justify-center gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-extrabold text-blue-700 transition hover:bg-blue-100 sm:h-14 sm:text-base"
             >
               <CalendarDays className="h-5 w-5" />
               Google Calendar
             </button>
             <button
               onClick={() => downloadMatchIcs(match, teamsById)}
-              className="inline-flex h-14 items-center justify-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 text-base font-extrabold text-emerald-700 transition hover:bg-emerald-100"
+              className="inline-flex min-h-12 items-center justify-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-extrabold text-emerald-700 transition hover:bg-emerald-100 sm:h-14 sm:text-base"
             >
               <Download className="h-5 w-5" />
               Apple / Outlook (.ics)
@@ -757,7 +774,7 @@ export function MatchDetailModal({
             <button
               onClick={() => onToggleFavorite(match.id)}
               className={cn(
-                "inline-flex h-14 items-center justify-center gap-3 rounded-2xl border text-base font-extrabold transition",
+                "inline-flex min-h-12 items-center justify-center gap-3 rounded-2xl border px-3 py-2 text-sm font-extrabold transition sm:h-14 sm:text-base",
                 isFavorite
                   ? "border-rose-200 bg-rose-50 text-rose-700"
                   : "border-slate-200 bg-white text-slate-950 hover:bg-slate-50"
@@ -784,7 +801,7 @@ function CompactPrediction({
   awayLabel: string;
 }) {
   return (
-    <div className="mb-6 rounded-[24px] border border-amber-200 bg-amber-50 p-5 dark:border-amber-300/20 dark:bg-amber-300/10">
+    <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-300/20 dark:bg-amber-300/10 sm:mb-6 sm:rounded-[24px] sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h3 className="inline-flex items-center gap-2 text-sm font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-200">
           <Trophy className="h-5 w-5" />
@@ -823,8 +840,8 @@ function CompactProbability({ label, value }: { label: string; value: number }) 
 function ModalTeam({ team, align = "left" }: { team?: Team; align?: "left" | "right" | "center" }) {
   const content = (
     <div className={cn("flex flex-col items-center", align === "right" ? "md:items-end" : align === "center" ? "items-center" : "md:items-start")}>
-      <TeamFlag flag={team?.flag} className="h-20 w-28 rounded-xl text-6xl" />
-      <h2 className="mt-4 text-center text-lg font-extrabold text-slate-950 dark:text-white md:text-left">
+      <TeamFlag flag={team?.flag} className="h-12 w-16 rounded-xl text-4xl sm:h-20 sm:w-28 sm:text-6xl" />
+      <h2 className="mt-2 max-w-full truncate text-center text-sm font-extrabold text-slate-950 dark:text-white md:text-left sm:mt-4 sm:text-lg">
         {team?.name ?? "TBD"}
       </h2>
     </div>

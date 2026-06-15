@@ -42,23 +42,23 @@ export default function MatchCard({
     <article
       onClick={() => onSelectMatch?.(match)}
       className={cn(
-        "rounded-[28px] border border-white/10 bg-white/[0.055] p-4 shadow-glass backdrop-blur transition hover:border-trophy-300/30 sm:p-5",
+        "rounded-3xl border border-white/10 bg-white/[0.055] p-3.5 shadow-glass backdrop-blur transition hover:border-trophy-300/30 sm:p-5",
         onSelectMatch && "cursor-pointer"
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <div className="text-xs font-black uppercase tracking-[0.22em] text-trophy-300">
             Trận {match.matchNumber}
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-slate-400 sm:gap-2">
             <span>{match.stage}</span>
             {match.group && <span className="rounded-full bg-cyan-300/10 px-2 py-1 text-cyan-100">Group {match.group}</span>}
             <span
               className={cn(
                 "rounded-full px-2 py-1 text-sm font-bold uppercase",
                 match.status === "live" && "bg-red-500/20 text-red-200",
-                match.status === "finished" && "bg-emerald-500/20 text-emerald-200",
+                match.status === "finished" && "bg-emerald-500/5 text-emerald-200",
                 match.status === "upcoming" && "bg-white/10 text-slate-200"
               )}
             >
@@ -73,7 +73,7 @@ export default function MatchCard({
             onToggleFavorite(match.id);
           }}
           className={cn(
-            "grid h-6 w-6 place-items-center  transition",
+            "grid h-10 w-10 shrink-0 place-items-center rounded-full transition",
             isFavorite
               ? "text-slate-950"
               : "border-white/10 bg-white/5 text-slate-300 hover:border-trophy-300/60"
@@ -83,25 +83,25 @@ export default function MatchCard({
         </button>
       </div>
 
-      <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+      <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:mt-5 sm:gap-3">
         <TeamBlock team={home} align="left" />
         <ScoreBlock match={match} />
         <TeamBlock team={away} align="right" />
       </div>
 
-      <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-3 text-sm text-slate-300">
+      <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-3 text-sm text-slate-300 sm:mt-5">
         <div className="font-bold text-white">
           {formatDate(match.date)} • {match.time}
         </div>
         {(prediction || onPredictionChange) && (
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl  bg-white/5 px-3 py-2">
+          <div className="mt-3 flex flex-col items-stretch gap-2 rounded-xl bg-white/5 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
             {prediction && (
               <span className="inline-flex rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-black text-amber-200">
                 Chênh lệch: {prediction.handicap}
               </span>
             )}
             {onPredictionChange && (
-              <div className="inline-flex items-center gap-2">
+              <div className="inline-flex items-center justify-between gap-2 sm:justify-start">
                 <span className="text-xs font-black uppercase tracking-wider text-slate-400">Dự đoán</span>
                 <ScorePredictionInput
                   matchId={match.id}
@@ -131,8 +131,8 @@ function TeamBlock({
 }) {
   const content = (
     <div className={cn("min-w-0", align === "right" && "text-right")}>
-      <TeamFlag flag={team?.flag} className="h-10 w-10 text-3xl" />
-      <div className="mt-2 truncate text-base font-black text-white">{team?.name ?? "TBD"}</div>
+      <TeamFlag flag={team?.flag} className="h-9 w-9 text-2xl sm:h-10 sm:w-10 sm:text-3xl" />
+      <div className="mt-2 truncate text-sm font-black text-white sm:text-base">{team?.name ?? "TBD"}</div>
       <div className="text-xs font-bold text-slate-400">{team?.shortName ?? "TBD"}</div>
     </div>
   );
@@ -152,7 +152,7 @@ function TeamBlock({
 
 function ScoreBlock({ match }: { match: Match }) {
   return (
-    <div className="rounded-2xl border border-trophy-300/20 bg-trophy-300/10 px-4 py-3 text-center text-xl font-black text-trophy-100">
+    <div className="rounded-2xl border border-trophy-300/20 bg-trophy-300/10 px-3 py-2 text-center text-lg font-black text-trophy-100 sm:px-4 sm:py-3 sm:text-xl">
       {match.homeScore ?? "-"} : {match.awayScore ?? "-"}
     </div>
   );

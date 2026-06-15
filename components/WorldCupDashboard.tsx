@@ -102,7 +102,7 @@ export default function WorldCupDashboard() {
 
   return (
     <main className="min-h-screen">
-      <div className="app-container relative z-10 space-y-6 py-4">
+      <div className="app-container relative z-10 space-y-4 py-3 sm:space-y-6 sm:py-4">
         <HeroSection>
           <FeaturedMatches
             matches={matches}
@@ -123,7 +123,7 @@ export default function WorldCupDashboard() {
         {!hydrated ? (
           <LoadingState />
         ) : (
-          <section className="min-h-[350px] rounded-[28px] border border-white/10 bg-slate-950/25 p-3 shadow-glass backdrop-blur sm:p-4">
+          <section className="min-h-[350px] rounded-3xl border border-white/10 bg-slate-950/25 p-2.5 shadow-glass backdrop-blur sm:p-4">
             {activeTab === "schedule" && (
               <ScheduleBoard
                 matches={matches}
@@ -151,7 +151,7 @@ export default function WorldCupDashboard() {
           </section>
         )}
       </div>
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
         <ThemeToggle />
       </div>
       <footer className="relative z-10 mt-12 border-t border-white/5 px-4 py-8 text-center text-sm font-semibold uppercase tracking-wide text-slate-500/70">
