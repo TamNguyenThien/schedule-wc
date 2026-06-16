@@ -186,7 +186,7 @@ function CompactFeaturedMatch({
       {prediction && (
         <div className="mt-3 text-center">
           <span className="inline-flex rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-black text-amber-200">
-            Chênh lệch: {prediction.handicap}
+            Mô phỏng: {prediction.handicap}
           </span>
         </div>
       )}

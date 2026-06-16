@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Calendar, CalendarDays, ChevronDown, Clock, Download, ExternalLink, Flame, Grid2X2, Heart, List, Radio, Search, Star, Table2, Trophy, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import EmptyState from "./EmptyState";
 import KnockoutBracket from "./KnockoutBracket";
@@ -53,6 +53,7 @@ export default function ScheduleBoard({
     () => Array.from(new Set(matches.map((match) => match.date))).sort((a, b) => a.localeCompare(b)),
     [matches]
   );
+  const todayDate = useMemo(() => getTodayVietnamDate(), []);
   const availableGroups = useMemo(
     () => Array.from(new Set(matches.map((match) => match.group).filter(Boolean) as string[])).sort(),
     [matches]
@@ -124,7 +125,7 @@ export default function ScheduleBoard({
       .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`) || a.matchNumber - b.matchNumber);
   }, [favoriteTeamIds, favoriteTeamsOnly, groupFilter, matches, mode, search, stageFilter, teamsById, venueFilter]);
 
-  const effectiveSelectedDate = selectedDate || availableDates[0] || "";
+  const effectiveSelectedDate = selectedDate || (availableDates.includes(todayDate) ? todayDate : availableDates[0]) || "";
   const dateMatches = useMemo(
     () => filteredMatches.filter((match) => match.date === effectiveSelectedDate),
     [effectiveSelectedDate, filteredMatches]
@@ -297,6 +298,7 @@ export default function ScheduleBoard({
               onToggleFavorite={onToggleFavorite}
               onPredictionChange={updateUserPrediction}
               onSelectMatch={setSelectedMatch}
+              todayDate={todayDate}
             />
           ) : (
             <div className="grid gap-4 lg:grid-cols-2">
@@ -336,7 +338,8 @@ function ScheduleTable({
   userPredictions,
   onToggleFavorite,
   onPredictionChange,
-  onSelectMatch
+  onSelectMatch,
+  todayDate
 }: {
   matches: Match[];
   teamsById: Map<string, Team>;
@@ -345,24 +348,63 @@ function ScheduleTable({
   onToggleFavorite: (matchId: string) => void;
   onPredictionChange: (matchId: string, field: keyof UserPrediction, value: string) => void;
   onSelectMatch: (match: Match) => void;
+  todayDate: string;
 }) {
   const groups = groupMatchesByDate(matches);
   const teams = Array.from(teamsById.values());
+  const mobileTodayGroupRef = useRef<HTMLElement | null>(null);
+  const desktopTodayGroupRef = useRef<HTMLTableRowElement | null>(null);
+  const hasScrolledToToday = useRef(false);
+
+  useEffect(() => {
+    if (hasScrolledToToday.current) return;
+
+    const isDesktop = window.matchMedia("(min-width: 768px)").matches;
+    const target = isDesktop ? desktopTodayGroupRef.current : mobileTodayGroupRef.current;
+    if (!target) return;
+
+    hasScrolledToToday.current = true;
+    window.setTimeout(() => {
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }, 250);
+  }, [groups, todayDate]);
 
   return (
     <>
-      <div className="grid gap-3 md:hidden">
-        {matches.map((match) => (
-          <MatchCard
-            key={match.id}
-            match={match}
-            teams={teams}
-            isFavorite={favoriteMatchIds.has(match.id)}
-            userPrediction={userPredictions[match.id]}
-            onToggleFavorite={onToggleFavorite}
-            onPredictionChange={onPredictionChange}
-            onSelectMatch={onSelectMatch}
-          />
+      <div className="grid gap-4 md:hidden">
+        {groups.map((group) => (
+          <section
+            key={group.date}
+            ref={group.date === todayDate ? mobileTodayGroupRef : undefined}
+            className="scroll-mt-4 space-y-3"
+          >
+            <div
+              className={cn(
+                "sticky top-2 z-20 flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-black shadow-glass backdrop-blur",
+                group.date === todayDate
+                  ? "border-rose-500/30 bg-rose-700 text-white"
+                  : "border-slate-200 bg-white/90 text-slate-950 dark:border-white/10 dark:bg-slate-950/90 dark:text-white"
+              )}
+            >
+              <span>{formatFullDate(group.date)}</span>
+              {group.date === todayDate && <span className="rounded-full bg-white/20 px-2 py-1 text-xs">Hôm nay</span>}
+            </div>
+            {group.matches.map((match) => (
+              <MatchCard
+                key={match.id}
+                match={match}
+                teams={teams}
+                isFavorite={favoriteMatchIds.has(match.id)}
+                userPrediction={userPredictions[match.id]}
+                onToggleFavorite={onToggleFavorite}
+                onPredictionChange={onPredictionChange}
+                onSelectMatch={onSelectMatch}
+              />
+            ))}
+          </section>
         ))}
       </div>
       <div className="hidden overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-glass dark:border-white/10 dark:bg-white/5 md:block">
@@ -389,7 +431,7 @@ function ScheduleTable({
               <th className="px-4 py-4 text-right">Đội 1</th>
               <th className="whitespace-nowrap px-3 py-4 text-center">Tỉ số</th>
               <th className="px-4 py-4">Đội 2</th>
-              <th className="px-3 py-4 text-center">Chênh lệch</th>
+              <th className="px-3 py-4 text-center">Mô phỏng</th>
               <th className="px-3 py-4 text-center">Dự đoán</th>
               <th className="px-3 py-4 text-center">Thao tác</th>
             </tr>
@@ -400,12 +442,15 @@ function ScheduleTable({
                 const home = teamsById.get(match.homeTeamId ?? "");
                 const away = teamsById.get(match.awayTeamId ?? "");
                 const prediction = getMatchPrediction(match, teamsById);
-
                 return (
                   <tr
                     key={match.id}
+                    ref={group.date === todayDate && index === 0 ? desktopTodayGroupRef : undefined}
                     onClick={() => onSelectMatch(match)}
-                    className="cursor-pointer border-b border-slate-200 transition last:border-0 hover:bg-rose-50/60 dark:border-white/10 dark:hover:bg-white/5"
+                    className={cn(
+                      "cursor-pointer border-b border-slate-200 transition last:border-0 hover:bg-rose-50/60 dark:border-white/10 dark:hover:bg-white/5",
+                      group.date === todayDate && "bg-rose-50/70 dark:bg-rose-500/10"
+                    )}
                   >
                     <td className="px-4 py-3">
                       <span className="inline-flex rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-900 dark:border-white/10 dark:bg-white/10 dark:text-white">
@@ -657,6 +702,18 @@ function formatShortDate(date: string) {
   }).format(parsed);
 }
 
+function getTodayVietnamDate() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+  const value = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+
+  return `${value("year")}-${value("month")}-${value("day")}`;
+}
+
 export function MatchDetailModal({
   match,
   teamsById,
@@ -835,7 +892,7 @@ function CompactPrediction({
         <CompactProbability label={awayLabel} value={prediction.awayWin} />
       </div>
       <p className="mt-3 text-sm font-bold text-slate-700 dark:text-slate-300">
-        Tỉ số dự kiến {prediction.projectedScore} • Chênh lệch {prediction.handicap} • Độ tin cậy {prediction.confidence}%
+        Tỉ số dự kiến {prediction.projectedScore} • Line mô phỏng {prediction.handicap} • Độ tin cậy {prediction.confidence}%
       </p>
     </div>
   );

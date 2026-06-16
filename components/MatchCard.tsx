@@ -35,10 +35,9 @@ export default function MatchCard({
   onPredictionChange,
   onSelectMatch
 }: MatchCardProps) {
-  const teamsById = new Map(teams.map((team) => [team.id, team]));
   const home = teams.find((team) => team.id === match.homeTeamId);
   const away = teams.find((team) => team.id === match.awayTeamId);
-  const prediction = getMatchPrediction(match, teamsById);
+  const prediction = getMatchPrediction(match, new Map(teams.map((team) => [team.id, team])));
 
   return (
     <article
@@ -100,7 +99,7 @@ export default function MatchCard({
           <div className="mt-3 flex flex-col items-stretch gap-2 rounded-xl bg-white/5 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
             {prediction && (
               <span className="inline-flex rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-black text-amber-200">
-                Chênh lệch: {prediction.handicap}
+                Mô phỏng: {prediction.handicap}
               </span>
             )}
             {onPredictionChange && (

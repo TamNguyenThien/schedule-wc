@@ -242,7 +242,7 @@ function PredictionPanel({
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <InfoBlock label="Đội có lợi thế" value={prediction.favoriteLabel} />
-            <InfoBlock label="Chênh lệch dự kiến" value={prediction.handicap} />
+            <InfoBlock label="Line mô phỏng" value={prediction.handicap} />
             <InfoBlock label="Tỉ số dự kiến" value={prediction.projectedScore} />
           </div>
           <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
