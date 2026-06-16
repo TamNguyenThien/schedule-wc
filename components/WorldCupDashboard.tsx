@@ -26,6 +26,7 @@ export default function WorldCupDashboard() {
   const [favoriteMatchIds, setFavoriteMatchIds] = useState<Set<string>>(new Set());
   const [favoriteTeamIds, setFavoriteTeamIds] = useState<Set<string>>(new Set());
   const [hydrated, setHydrated] = useState(false);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -47,6 +48,8 @@ export default function WorldCupDashboard() {
         setLastUpdatedAt(data.updatedAt);
       } catch (error) {
         console.error("Cannot refresh World Cup data.", error);
+      } finally {
+        if (isMounted) setInitialDataLoaded(true);
       }
     }
 
@@ -133,6 +136,7 @@ export default function WorldCupDashboard() {
                 favoriteMatchIds={favoriteMatchIds}
                 favoriteTeamIds={favoriteTeamIds}
                 onToggleFavorite={toggleFavoriteMatch}
+                autoScrollReady={initialDataLoaded}
               />
             )}
             {activeTab === "standings" && (

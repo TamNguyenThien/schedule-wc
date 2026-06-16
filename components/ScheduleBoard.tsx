@@ -1,7 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { Calendar, CalendarDays, ChevronDown, Clock, Download, ExternalLink, Flame, Grid2X2, Heart, List, Radio, Search, Star, Table2, Trophy, X } from "lucide-react";
+import {
+  Calendar,
+  CalendarDays,
+  ChevronDown,
+  Clock,
+  Download,
+  ExternalLink,
+  Flame,
+  Grid2X2,
+  Heart,
+  List,
+  Radio,
+  Search,
+  Star,
+  Table2,
+  Trophy,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import EmptyState from "./EmptyState";
@@ -12,7 +29,10 @@ import TeamFlag from "./TeamFlag";
 import { formatMatchLocation, hasKnownMatchLocation } from "@/lib/matchDetails";
 import { getTeamSlug } from "@/lib/teamProfiles";
 import { cn } from "@/lib/utils";
-import { getMatchPrediction, type MatchPrediction } from "@/lib/matchPredictions";
+import {
+  getMatchPrediction,
+  type MatchPrediction,
+} from "@/lib/matchPredictions";
 import type { BracketMatch, Match, Team } from "@/types/worldcup";
 
 type ScheduleMode = "all" | "date" | "knockout";
@@ -21,7 +41,9 @@ type UserPrediction = { home: string; away: string };
 type UserPredictions = Record<string, UserPrediction>;
 
 const userPredictionsKey = "wc2026.userPredictions";
-const fallbackLiveMatchUrl = "https://vtvgo.vn/channel/kenh-chinh-thuc-1,13_nb.html";
+const fallbackLiveMatchUrl =
+  "https://vtvgo.vn/channel/kenh-chinh-thuc-1,13_nb.html";
+let hasAutoScrolledToToday = false;
 
 export default function ScheduleBoard({
   matches,
@@ -29,7 +51,8 @@ export default function ScheduleBoard({
   bracket,
   favoriteMatchIds,
   favoriteTeamIds,
-  onToggleFavorite
+  onToggleFavorite,
+  autoScrollReady,
 }: {
   matches: Match[];
   teams: Team[];
@@ -37,6 +60,7 @@ export default function ScheduleBoard({
   favoriteMatchIds: Set<string>;
   favoriteTeamIds: Set<string>;
   onToggleFavorite: (matchId: string) => void;
+  autoScrollReady: boolean;
 }) {
   const [mode, setMode] = useState<ScheduleMode>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("table");
@@ -48,23 +72,44 @@ export default function ScheduleBoard({
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [userPredictions, setUserPredictions] = useState<UserPredictions>({});
 
-  const teamsById = useMemo(() => new Map(teams.map((team) => [team.id, team])), [teams]);
+  const teamsById = useMemo(
+    () => new Map(teams.map((team) => [team.id, team])),
+    [teams],
+  );
   const availableDates = useMemo(
-    () => Array.from(new Set(matches.map((match) => match.date))).sort((a, b) => a.localeCompare(b)),
-    [matches]
+    () =>
+      Array.from(new Set(matches.map((match) => match.date))).sort((a, b) =>
+        a.localeCompare(b),
+      ),
+    [matches],
   );
   const todayDate = useMemo(() => getTodayVietnamDate(), []);
   const availableGroups = useMemo(
-    () => Array.from(new Set(matches.map((match) => match.group).filter(Boolean) as string[])).sort(),
-    [matches]
+    () =>
+      Array.from(
+        new Set(
+          matches.map((match) => match.group).filter(Boolean) as string[],
+        ),
+      ).sort(),
+    [matches],
   );
   const availableStages = useMemo(
-    () => Array.from(new Set(matches.map((match) => match.stage))).sort((a, b) => a.localeCompare(b)),
-    [matches]
+    () =>
+      Array.from(new Set(matches.map((match) => match.stage))).sort((a, b) =>
+        a.localeCompare(b),
+      ),
+    [matches],
   );
   const availableVenues = useMemo(
-    () => Array.from(new Set(matches.map((match) => match.stadium).filter((venue) => venue !== "TBD"))).sort((a, b) => a.localeCompare(b)),
-    [matches]
+    () =>
+      Array.from(
+        new Set(
+          matches
+            .map((match) => match.stadium)
+            .filter((venue) => venue !== "TBD"),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
+    [matches],
   );
   const [selectedDate, setSelectedDate] = useState("");
 
@@ -77,10 +122,17 @@ export default function ScheduleBoard({
     }
   }, []);
 
-  function updateUserPrediction(matchId: string, field: keyof UserPrediction, value: string) {
+  function updateUserPrediction(
+    matchId: string,
+    field: keyof UserPrediction,
+    value: string,
+  ) {
     const normalized = value.replace(/\D/g, "").slice(0, 2);
     setUserPredictions((current) => {
-      const nextPrediction = { ...(current[matchId] ?? { home: "", away: "" }), [field]: normalized };
+      const nextPrediction = {
+        ...(current[matchId] ?? { home: "", away: "" }),
+        [field]: normalized,
+      };
       const next = { ...current, [matchId]: nextPrediction };
 
       if (!nextPrediction.home && !nextPrediction.away) delete next[matchId];
@@ -122,13 +174,31 @@ export default function ScheduleBoard({
           matchesFavoriteTeams
         );
       })
-      .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`) || a.matchNumber - b.matchNumber);
-  }, [favoriteTeamIds, favoriteTeamsOnly, groupFilter, matches, mode, search, stageFilter, teamsById, venueFilter]);
+      .sort(
+        (a, b) =>
+          `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`) ||
+          a.matchNumber - b.matchNumber,
+      );
+  }, [
+    favoriteTeamIds,
+    favoriteTeamsOnly,
+    groupFilter,
+    matches,
+    mode,
+    search,
+    stageFilter,
+    teamsById,
+    venueFilter,
+  ]);
 
-  const effectiveSelectedDate = selectedDate || (availableDates.includes(todayDate) ? todayDate : availableDates[0]) || "";
+  const effectiveSelectedDate =
+    selectedDate ||
+    (availableDates.includes(todayDate) ? todayDate : availableDates[0]) ||
+    "";
   const dateMatches = useMemo(
-    () => filteredMatches.filter((match) => match.date === effectiveSelectedDate),
-    [effectiveSelectedDate, filteredMatches]
+    () =>
+      filteredMatches.filter((match) => match.date === effectiveSelectedDate),
+    [effectiveSelectedDate, filteredMatches],
   );
 
   function downloadIcs() {
@@ -144,16 +214,19 @@ export default function ScheduleBoard({
         return [
           "BEGIN:VEVENT",
           `UID:${match.id}@wc2026.local`,
-          `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")}`,
+          `DTSTAMP:${new Date()
+            .toISOString()
+            .replace(/[-:]/g, "")
+            .replace(/\.\d{3}/, "")}`,
           `DTSTART:${start}`,
           `DTEND:${end}`,
           `SUMMARY:World Cup 2026 - ${home} vs ${away}`,
           `LOCATION:${hasKnownMatchLocation(match) ? formatMatchLocation(match) : ""}`,
           ...buildIcsAlarms(),
-          "END:VEVENT"
+          "END:VEVENT",
         ];
       }),
-      "END:VCALENDAR"
+      "END:VCALENDAR",
     ].join("\r\n");
 
     const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
@@ -169,13 +242,25 @@ export default function ScheduleBoard({
     <div className="space-y-5 sm:space-y-7">
       <div className="border-b border-slate-200 pb-2 dark:border-white/10 sm:pb-0">
         <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-8">
-          <ScheduleModeButton active={mode === "all"} onClick={() => setMode("all")} icon={Table2}>
+          <ScheduleModeButton
+            active={mode === "all"}
+            onClick={() => setMode("all")}
+            icon={Table2}
+          >
             Tất cả trận đấu
           </ScheduleModeButton>
-          <ScheduleModeButton active={mode === "date"} onClick={() => setMode("date")} icon={Calendar}>
+          <ScheduleModeButton
+            active={mode === "date"}
+            onClick={() => setMode("date")}
+            icon={Calendar}
+          >
             Lịch theo ngày
           </ScheduleModeButton>
-          <ScheduleModeButton active={mode === "knockout"} onClick={() => setMode("knockout")} icon={Flame}>
+          <ScheduleModeButton
+            active={mode === "knockout"}
+            onClick={() => setMode("knockout")}
+            icon={Flame}
+          >
             Nhánh Knockout
           </ScheduleModeButton>
         </div>
@@ -197,21 +282,27 @@ export default function ScheduleBoard({
           </select>
           <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-950 dark:text-white sm:right-5 sm:h-6 sm:w-6" />
         </div>
-      ) : mode !== "knockout" && (
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500 sm:left-5" />
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Tìm đội, sân, thành phố..."
-            className="h-[52px] w-full rounded-2xl border border-slate-200 bg-white px-12 py-3 text-base font-semibold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-rose-700/40 dark:border-white/10 dark:bg-white/5 dark:text-white sm:h-14 sm:px-14"
-          />
-        </div>
+      ) : (
+        mode !== "knockout" && (
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500 sm:left-5" />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Tìm đội, sân, thành phố..."
+              className="h-[52px] w-full rounded-2xl border border-slate-200 bg-white px-12 py-3 text-base font-semibold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-rose-700/40 dark:border-white/10 dark:bg-white/5 dark:text-white sm:h-14 sm:px-14"
+            />
+          </div>
+        )
       )}
 
       {mode !== "knockout" && (
         <div className="grid gap-2.5 md:grid-cols-[1fr_1fr_1fr_auto]">
-          <FilterSelect label="Bảng đấu" value={groupFilter} onChange={setGroupFilter}>
+          <FilterSelect
+            label="Bảng đấu"
+            value={groupFilter}
+            onChange={setGroupFilter}
+          >
             <option value="">Tất cả bảng</option>
             {availableGroups.map((group) => (
               <option key={group} value={group}>
@@ -219,7 +310,11 @@ export default function ScheduleBoard({
               </option>
             ))}
           </FilterSelect>
-          <FilterSelect label="Vòng đấu" value={stageFilter} onChange={setStageFilter}>
+          <FilterSelect
+            label="Vòng đấu"
+            value={stageFilter}
+            onChange={setStageFilter}
+          >
             <option value="">Tất cả vòng</option>
             {availableStages.map((stage) => (
               <option key={stage} value={stage}>
@@ -227,7 +322,11 @@ export default function ScheduleBoard({
               </option>
             ))}
           </FilterSelect>
-          <FilterSelect label="Sân vận động" value={venueFilter} onChange={setVenueFilter}>
+          <FilterSelect
+            label="Sân vận động"
+            value={venueFilter}
+            onChange={setVenueFilter}
+          >
             <option value="">Tất cả sân</option>
             {availableVenues.map((venue) => (
               <option key={venue} value={venue}>
@@ -269,10 +368,18 @@ export default function ScheduleBoard({
             </h2>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <div className="inline-flex rounded-2xl border border-slate-200 bg-slate-50 p-1 dark:border-white/10 dark:bg-white/5">
-                <ViewButton active={viewMode === "table"} onClick={() => setViewMode("table")} icon={List}>
+                <ViewButton
+                  active={viewMode === "table"}
+                  onClick={() => setViewMode("table")}
+                  icon={List}
+                >
                   Bảng
                 </ViewButton>
-                <ViewButton active={viewMode === "grid"} onClick={() => setViewMode("grid")} icon={Grid2X2}>
+                <ViewButton
+                  active={viewMode === "grid"}
+                  onClick={() => setViewMode("grid")}
+                  icon={Grid2X2}
+                >
                   Lưới
                 </ViewButton>
               </div>
@@ -299,6 +406,7 @@ export default function ScheduleBoard({
               onPredictionChange={updateUserPrediction}
               onSelectMatch={setSelectedMatch}
               todayDate={todayDate}
+              autoScrollReady={autoScrollReady}
             />
           ) : (
             <div className="grid gap-4 lg:grid-cols-2">
@@ -339,38 +447,57 @@ function ScheduleTable({
   onToggleFavorite,
   onPredictionChange,
   onSelectMatch,
-  todayDate
+  todayDate,
+  autoScrollReady,
 }: {
   matches: Match[];
   teamsById: Map<string, Team>;
   favoriteMatchIds: Set<string>;
   userPredictions: UserPredictions;
   onToggleFavorite: (matchId: string) => void;
-  onPredictionChange: (matchId: string, field: keyof UserPrediction, value: string) => void;
+  onPredictionChange: (
+    matchId: string,
+    field: keyof UserPrediction,
+    value: string,
+  ) => void;
   onSelectMatch: (match: Match) => void;
   todayDate: string;
+  autoScrollReady: boolean;
 }) {
   const groups = groupMatchesByDate(matches);
   const teams = Array.from(teamsById.values());
   const mobileTodayGroupRef = useRef<HTMLElement | null>(null);
   const desktopTodayGroupRef = useRef<HTMLTableRowElement | null>(null);
-  const hasScrolledToToday = useRef(false);
 
   useEffect(() => {
-    if (hasScrolledToToday.current) return;
+    if (!autoScrollReady) return;
+    if (hasAutoScrolledToToday) return;
 
     const isDesktop = window.matchMedia("(min-width: 768px)").matches;
-    const target = isDesktop ? desktopTodayGroupRef.current : mobileTodayGroupRef.current;
+    const target = isDesktop
+      ? desktopTodayGroupRef.current
+      : mobileTodayGroupRef.current;
     if (!target) return;
 
-    hasScrolledToToday.current = true;
-    window.setTimeout(() => {
-      target.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
+    const timeoutId = window.setTimeout(() => {
+      if (hasAutoScrolledToToday) return;
+      hasAutoScrolledToToday = true;
+
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          const top = target.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({
+            top: Math.max(top, 0),
+            behavior: "auto",
+          });
+        });
       });
-    }, 250);
-  }, [groups, todayDate]);
+    }, 500);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [autoScrollReady, groups.length, todayDate]);
 
   return (
     <>
@@ -386,11 +513,15 @@ function ScheduleTable({
                 "sticky top-2 z-20 flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-black shadow-glass backdrop-blur",
                 group.date === todayDate
                   ? "border-rose-500/30 bg-rose-700 text-white"
-                  : "border-slate-200 bg-white/90 text-slate-950 dark:border-white/10 dark:bg-slate-950/90 dark:text-white"
+                  : "border-slate-200 bg-white/90 text-slate-950 dark:border-white/10 dark:bg-slate-950/90 dark:text-white",
               )}
             >
               <span>{formatFullDate(group.date)}</span>
-              {group.date === todayDate && <span className="rounded-full bg-white/20 px-2 py-1 text-xs">Hôm nay</span>}
+              {group.date === todayDate && (
+                <span className="rounded-full bg-white/20 px-2 py-1 text-xs">
+                  Hôm nay
+                </span>
+              )}
             </div>
             {group.matches.map((match) => (
               <MatchCard
@@ -409,128 +540,146 @@ function ScheduleTable({
       </div>
       <div className="hidden overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-glass dark:border-white/10 dark:bg-white/5 md:block">
         <div className="overflow-x-auto">
-        <table className="w-full min-w-[1290px] table-fixed border-collapse text-sm">
-          <colgroup>
-            <col className="w-[64px]" />
-            <col className="w-[105px]" />
-            <col className="w-[105px]" />
-            <col className="w-[170px]" />
-            <col className="w-[195px]" />
-            <col className="w-[72px]" />
-            <col className="w-[195px]" />
-            <col className="w-[110px]" />
-            <col className="w-[130px]" />
-            <col className="w-[90px]" />
-          </colgroup>
-          <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-white">
-              <th className="px-4 py-4">ID</th>
-              <th className="px-4 py-4">Ngày</th>
-              <th className="px-4 py-4">Giờ</th>
-              <th className="px-4 py-4">Vòng đấu</th>
-              <th className="px-4 py-4 text-right">Đội 1</th>
-              <th className="whitespace-nowrap px-3 py-4 text-center">Tỉ số</th>
-              <th className="px-4 py-4">Đội 2</th>
-              <th className="px-3 py-4 text-center">Mô phỏng</th>
-              <th className="px-3 py-4 text-center">Dự đoán</th>
-              <th className="px-3 py-4 text-center">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {groups.map((group) =>
-              group.matches.map((match, index) => {
-                const home = teamsById.get(match.homeTeamId ?? "");
-                const away = teamsById.get(match.awayTeamId ?? "");
-                const prediction = getMatchPrediction(match, teamsById);
-                return (
-                  <tr
-                    key={match.id}
-                    ref={group.date === todayDate && index === 0 ? desktopTodayGroupRef : undefined}
-                    onClick={() => onSelectMatch(match)}
-                    className={cn(
-                      "cursor-pointer border-b border-slate-200 transition last:border-0 hover:bg-rose-50/60 dark:border-white/10 dark:hover:bg-white/5",
-                      group.date === todayDate && "bg-rose-50/70 dark:bg-rose-500/10"
-                    )}
-                  >
-                    <td className="px-4 py-3">
-                      <span className="inline-flex rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-900 dark:border-white/10 dark:bg-white/10 dark:text-white">
-                        {match.matchNumber}
-                      </span>
-                    </td>
-                    {index === 0 && (
-                      <td rowSpan={group.matches.length} className="border-r border-slate-200 px-4 py-3 text-center align-middle dark:border-white/10">
-                        <span className="inline-flex rounded-2xl border border-rose-700/20 bg-rose-700/10 px-3 py-2 text-sm font-extrabold leading-none text-rose-700 shadow-glow dark:text-rose-300">
-                          {formatShortDate(group.date)}
+          <table className="w-full min-w-[1290px] table-fixed border-collapse text-sm">
+            <colgroup>
+              <col className="w-[64px]" />
+              <col className="w-[105px]" />
+              <col className="w-[105px]" />
+              <col className="w-[170px]" />
+              <col className="w-[195px]" />
+              <col className="w-[72px]" />
+              <col className="w-[195px]" />
+              <col className="w-[110px]" />
+              <col className="w-[130px]" />
+              <col className="w-[90px]" />
+            </colgroup>
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                <th className="px-4 py-4">ID</th>
+                <th className="px-4 py-4">Ngày</th>
+                <th className="px-4 py-4">Giờ</th>
+                <th className="px-4 py-4">Vòng đấu</th>
+                <th className="px-4 py-4 text-right">Đội 1</th>
+                <th className="whitespace-nowrap px-3 py-4 text-center">
+                  Tỉ số
+                </th>
+                <th className="px-4 py-4">Đội 2</th>
+                <th className="px-3 py-4 text-center">Mô phỏng</th>
+                <th className="px-3 py-4 text-center">Dự đoán</th>
+                <th className="px-3 py-4 text-center">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groups.map((group) =>
+                group.matches.map((match, index) => {
+                  const home = teamsById.get(match.homeTeamId ?? "");
+                  const away = teamsById.get(match.awayTeamId ?? "");
+                  const prediction = getMatchPrediction(match, teamsById);
+                  return (
+                    <tr
+                      key={match.id}
+                      ref={
+                        group.date === todayDate && index === 0
+                          ? desktopTodayGroupRef
+                          : undefined
+                      }
+                      onClick={() => onSelectMatch(match)}
+                      className={cn(
+                        "cursor-pointer border-b border-slate-200 transition last:border-0 hover:bg-rose-50/60 dark:border-white/10 dark:hover:bg-white/5",
+                        group.date === todayDate &&
+                          "bg-rose-50/70 dark:bg-rose-500/10",
+                      )}
+                    >
+                      <td className="px-4 py-3">
+                        <span className="inline-flex rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-900 dark:border-white/10 dark:bg-white/10 dark:text-white">
+                          {match.matchNumber}
                         </span>
                       </td>
-                    )}
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-2 font-bold text-slate-950 dark:text-white">
-                        <Clock className="h-5 w-5 text-trophy-700 dark:text-trophy-300" />
-                        {match.time}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex whitespace-nowrap rounded-full bg-slate-100 px-3 py-1.5 text-sm font-bold text-slate-900 dark:bg-white/10 dark:text-white">
-                        {match.stage}
-                        {match.group ? ` • ${match.group}` : ""}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <TeamCell team={home} align="right" />
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-3 text-center font-bold text-slate-950 dark:text-white">
-                      {match.homeScore ?? "-"} : {match.awayScore ?? "-"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <TeamCell team={away} />
-                    </td>
-                    <td className="px-3 py-3 text-center">
-                      {prediction ? (
-                        <span className="inline-flex whitespace-nowrap rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-black text-amber-700 dark:text-amber-200">
-                          {prediction.handicap}
-                        </span>
-                      ) : (
-                        <span className="text-sm font-bold text-slate-400">TBD</span>
+                      {index === 0 && (
+                        <td
+                          rowSpan={group.matches.length}
+                          className="border-r border-slate-200 px-4 py-3 text-center align-middle dark:border-white/10"
+                        >
+                          <span className="inline-flex rounded-2xl border border-rose-700/20 bg-rose-700/10 px-3 py-2 text-sm font-extrabold leading-none text-rose-700 shadow-glow dark:text-rose-300">
+                            {formatShortDate(group.date)}
+                          </span>
+                        </td>
                       )}
-                    </td>
-                    <td className="px-3 py-3">
-                      <ScorePredictionInput
-                        matchId={match.id}
-                        value={userPredictions[match.id]}
-                        onChange={onPredictionChange}
-                      />
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="flex items-center justify-center gap-3 text-slate-900 dark:text-white">
-                        <button
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            openGoogleCalendar(match, teamsById);
-                          }}
-                          aria-label="Thêm vào Google Calendar"
-                          className="transition hover:text-blue-600"
-                        >
-                          <CalendarDays className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onToggleFavorite(match.id);
-                          }}
-                          aria-label="Yêu thích trận đấu"
-                          className="transition hover:text-rose-700 dark:hover:text-rose-300"
-                        >
-                          <Heart className={cn("h-5 w-5", favoriteMatchIds.has(match.id) && "fill-current text-rose-700 dark:text-rose-300")} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center gap-2 font-bold text-slate-950 dark:text-white">
+                          <Clock className="h-5 w-5 text-trophy-700 dark:text-trophy-300" />
+                          {match.time}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex whitespace-nowrap rounded-full bg-slate-100 px-3 py-1.5 text-sm font-bold text-slate-900 dark:bg-white/10 dark:text-white">
+                          {match.stage}
+                          {match.group ? ` • ${match.group}` : ""}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <TeamCell team={home} align="right" />
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-3 text-center font-bold text-slate-950 dark:text-white">
+                        {match.homeScore ?? "-"} : {match.awayScore ?? "-"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <TeamCell team={away} />
+                      </td>
+                      <td className="px-3 py-3 text-center">
+                        {prediction ? (
+                          <span className="inline-flex whitespace-nowrap rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-black text-amber-700 dark:text-amber-200">
+                            {prediction.handicap}
+                          </span>
+                        ) : (
+                          <span className="text-sm font-bold text-slate-400">
+                            TBD
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3">
+                        <ScorePredictionInput
+                          matchId={match.id}
+                          value={userPredictions[match.id]}
+                          onChange={onPredictionChange}
+                        />
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex items-center justify-center gap-3 text-slate-900 dark:text-white">
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openGoogleCalendar(match, teamsById);
+                            }}
+                            aria-label="Thêm vào Google Calendar"
+                            className="transition hover:text-blue-600"
+                          >
+                            <CalendarDays className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onToggleFavorite(match.id);
+                            }}
+                            aria-label="Yêu thích trận đấu"
+                            className="transition hover:text-rose-700 dark:hover:text-rose-300"
+                          >
+                            <Heart
+                              className={cn(
+                                "h-5 w-5",
+                                favoriteMatchIds.has(match.id) &&
+                                  "fill-current text-rose-700 dark:text-rose-300",
+                              )}
+                            />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }),
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </>
@@ -545,7 +694,7 @@ function DailySchedule({
   userPredictions,
   onToggleFavorite,
   onPredictionChange,
-  onSelectMatch
+  onSelectMatch,
 }: {
   date: string;
   matches: Match[];
@@ -553,7 +702,11 @@ function DailySchedule({
   favoriteMatchIds: Set<string>;
   userPredictions: UserPredictions;
   onToggleFavorite: (matchId: string) => void;
-  onPredictionChange: (matchId: string, field: keyof UserPrediction, value: string) => void;
+  onPredictionChange: (
+    matchId: string,
+    field: keyof UserPrediction,
+    value: string,
+  ) => void;
   onSelectMatch: (match: Match) => void;
 }) {
   return (
@@ -586,12 +739,27 @@ function DailySchedule({
   );
 }
 
-function TeamCell({ team, align = "left" }: { team?: Team; align?: "left" | "right" }) {
+function TeamCell({
+  team,
+  align = "left",
+}: {
+  team?: Team;
+  align?: "left" | "right";
+}) {
   const content = (
-    <span className={cn("inline-flex min-w-0 items-center gap-2 text-base font-bold text-slate-950 dark:text-white", align === "right" && "justify-end")}>
-      {align === "left" && <TeamFlag flag={team?.flag} className="h-6 w-6 shrink-0 text-lg" />}
+    <span
+      className={cn(
+        "inline-flex min-w-0 items-center gap-2 text-base font-bold text-slate-950 dark:text-white",
+        align === "right" && "justify-end",
+      )}
+    >
+      {align === "left" && (
+        <TeamFlag flag={team?.flag} className="h-6 w-6 shrink-0 text-lg" />
+      )}
       <span className="truncate">{team?.name ?? "TBD"}</span>
-      {align === "right" && <TeamFlag flag={team?.flag} className="h-6 w-6 shrink-0 text-lg" />}
+      {align === "right" && (
+        <TeamFlag flag={team?.flag} className="h-6 w-6 shrink-0 text-lg" />
+      )}
     </span>
   );
 
@@ -601,7 +769,10 @@ function TeamCell({ team, align = "left" }: { team?: Team; align?: "left" | "rig
     <Link
       href={`/teams/${getTeamSlug(team)}`}
       onClick={(event) => event.stopPropagation()}
-      className={cn("block min-w-0 transition hover:opacity-75", align === "right" && "text-right")}
+      className={cn(
+        "block min-w-0 transition hover:opacity-75",
+        align === "right" && "text-right",
+      )}
     >
       {content}
     </Link>
@@ -612,7 +783,7 @@ function FilterSelect({
   label,
   value,
   onChange,
-  children
+  children,
 }: {
   label: string;
   value: string;
@@ -638,7 +809,7 @@ function ScheduleModeButton({
   active,
   onClick,
   icon: Icon,
-  children
+  children,
 }: {
   active: boolean;
   onClick: () => void;
@@ -650,7 +821,9 @@ function ScheduleModeButton({
       onClick={onClick}
       className={cn(
         "relative inline-flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-center text-[11px] font-extrabold leading-tight transition sm:flex-row sm:gap-3 sm:px-4 sm:py-3 sm:text-base",
-        active ? "tab-active-text bg-rose-700 shadow-glow" : "text-slate-900 hover:bg-slate-100 hover:text-rose-700 dark:text-white dark:hover:bg-white/10 dark:hover:text-rose-300"
+        active
+          ? "tab-active-text bg-rose-700 shadow-glow"
+          : "text-slate-900 hover:bg-slate-100 hover:text-rose-700 dark:text-white dark:hover:bg-white/10 dark:hover:text-rose-300",
       )}
     >
       <Icon className="h-5 w-5" />
@@ -663,7 +836,7 @@ function ViewButton({
   active,
   onClick,
   icon: Icon,
-  children
+  children,
 }: {
   active: boolean;
   onClick: () => void;
@@ -675,7 +848,9 @@ function ViewButton({
       onClick={onClick}
       className={cn(
         "inline-flex h-10 items-center gap-2 rounded-xl px-3 text-sm font-extrabold transition",
-        active ? "tab-active-text bg-rose-700 shadow-glow" : "text-slate-900 hover:bg-slate-100 dark:text-white dark:hover:bg-white/10"
+        active
+          ? "tab-active-text bg-rose-700 shadow-glow"
+          : "text-slate-900 hover:bg-slate-100 dark:text-white dark:hover:bg-white/10",
       )}
     >
       <Icon className="h-4 w-4" />
@@ -686,11 +861,13 @@ function ViewButton({
 
 function groupMatchesByDate(matches: Match[]) {
   const map = new Map<string, Match[]>();
-  matches.forEach((match) => map.set(match.date, [...(map.get(match.date) ?? []), match]));
+  matches.forEach((match) =>
+    map.set(match.date, [...(map.get(match.date) ?? []), match]),
+  );
 
   return Array.from(map.entries()).map(([date, groupMatches]) => ({
     date,
-    matches: groupMatches
+    matches: groupMatches,
   }));
 }
 
@@ -698,7 +875,7 @@ function formatShortDate(date: string) {
   const parsed = new Date(`${date}T00:00:00`);
   return new Intl.DateTimeFormat("vi-VN", {
     day: "2-digit",
-    month: "2-digit"
+    month: "2-digit",
   }).format(parsed);
 }
 
@@ -707,9 +884,10 @@ function getTodayVietnamDate() {
     timeZone: "Asia/Ho_Chi_Minh",
     year: "numeric",
     month: "2-digit",
-    day: "2-digit"
+    day: "2-digit",
   }).formatToParts(new Date());
-  const value = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  const value = (type: string) =>
+    parts.find((part) => part.type === type)?.value ?? "";
 
   return `${value("year")}-${value("month")}-${value("day")}`;
 }
@@ -719,7 +897,7 @@ export function MatchDetailModal({
   teamsById,
   onClose,
   isFavorite,
-  onToggleFavorite
+  onToggleFavorite,
 }: {
   match: Match;
   teamsById: Map<string, Team>;
@@ -754,7 +932,9 @@ export function MatchDetailModal({
           <ModalTeam team={home} align="center" />
           <div className="rounded-2xl border border-slate-200 bg-slate-100 px-3 py-3 text-center dark:border-white/10 dark:bg-white/5 sm:rounded-[24px] sm:px-10 sm:py-7">
             <div className="text-base font-extrabold tracking-wide text-slate-950 dark:text-white sm:text-lg sm:tracking-[0.35em]">
-              {match.homeScore ?? "-"} {match.homeScore === null && match.awayScore === null ? "" : ":"} {match.awayScore ?? "-"}
+              {match.homeScore ?? "-"}{" "}
+              {match.homeScore === null && match.awayScore === null ? "" : ":"}{" "}
+              {match.awayScore ?? "-"}
             </div>
             <div className="mt-2 inline-flex items-center gap-1.5 text-sm font-bold text-trophy-700 dark:text-trophy-300 sm:mt-3 sm:gap-2 sm:text-base">
               <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -767,7 +947,11 @@ export function MatchDetailModal({
         <div className="my-5 border-t border-slate-200 dark:border-white/10 sm:my-9" />
 
         {prediction && (
-          <CompactPrediction prediction={prediction} homeLabel={home?.shortName ?? "Đội 1"} awayLabel={away?.shortName ?? "Đội 2"} />
+          <CompactPrediction
+            prediction={prediction}
+            homeLabel={home?.shortName ?? "Đội 1"}
+            awayLabel={away?.shortName ?? "Đội 2"}
+          />
         )}
 
         <div className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5 md:grid-cols-2 sm:rounded-[24px] sm:p-6">
@@ -785,7 +969,11 @@ export function MatchDetailModal({
             </h3>
             <p className="mt-2 inline-flex items-center gap-2 text-base font-extrabold text-slate-950 dark:text-white sm:text-lg">
               <span className="h-3 w-3 rounded-full bg-amber-500" />
-              {match.status === "finished" ? "Đã kết thúc" : match.status === "live" ? "Đang diễn ra" : "Chưa diễn ra"}
+              {match.status === "finished"
+                ? "Đã kết thúc"
+                : match.status === "live"
+                  ? "Đang diễn ra"
+                  : "Chưa diễn ra"}
             </p>
           </div>
           <div className="md:col-span-2">
@@ -804,8 +992,8 @@ export function MatchDetailModal({
             Đồng bộ lịch thi đấu
           </h3>
           <p className="mt-3 text-sm font-semibold leading-6 text-slate-950 dark:text-white sm:mt-4 sm:text-base sm:leading-7">
-            Thêm trận đấu này vào Google Calendar hoặc tải file (.ics) cho Apple Calendar, Outlook để
-            nhận nhắc hẹn và không bỏ lỡ trận cầu.
+            Thêm trận đấu này vào Google Calendar hoặc tải file (.ics) cho Apple
+            Calendar, Outlook để nhận nhắc hẹn và không bỏ lỡ trận cầu.
           </p>
           <div className="mt-5 grid gap-3 sm:mt-6 sm:grid-cols-3 sm:gap-4">
             <Link
@@ -835,7 +1023,7 @@ export function MatchDetailModal({
                 "inline-flex min-h-12 items-center justify-center gap-3 rounded-2xl border px-3 py-2 text-sm font-extrabold transition sm:h-14 sm:text-base",
                 isFavorite
                   ? "border-rose-200 bg-rose-50 text-rose-700"
-                  : "border-slate-200 bg-white text-slate-950 hover:bg-slate-50"
+                  : "border-slate-200 bg-white text-slate-950 hover:bg-slate-50",
               )}
             >
               <Heart className={cn("h-5 w-5", isFavorite && "fill-current")} />
@@ -843,12 +1031,10 @@ export function MatchDetailModal({
             </button>
           </div>
         </div>
-        {match.status === "live" && (
-          <LiveMatchLink match={match} />
-        )}
+        {match.status === "live" && <LiveMatchLink match={match} />}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
 
@@ -858,7 +1044,12 @@ function LiveMatchLink({ match }: { match: Match }) {
   const liveMatchUrl = match.matchUrl ?? fallbackLiveMatchUrl;
 
   return (
-    <a href={liveMatchUrl} target="_blank" rel="noreferrer" className={className}>
+    <a
+      href={liveMatchUrl}
+      target="_blank"
+      rel="noreferrer"
+      className={className}
+    >
       <Radio className="h-5 w-5" />
       Mở link trận đấu
       <ExternalLink className="h-4 w-4" />
@@ -869,7 +1060,7 @@ function LiveMatchLink({ match }: { match: Match }) {
 function CompactPrediction({
   prediction,
   homeLabel,
-  awayLabel
+  awayLabel,
 }: {
   prediction: MatchPrediction;
   homeLabel: string;
@@ -892,13 +1083,20 @@ function CompactPrediction({
         <CompactProbability label={awayLabel} value={prediction.awayWin} />
       </div>
       <p className="mt-3 text-sm font-bold text-slate-700 dark:text-slate-300">
-        Tỉ số dự kiến {prediction.projectedScore} • Line mô phỏng {prediction.handicap} • Độ tin cậy {prediction.confidence}%
+        Tỉ số dự kiến {prediction.projectedScore} • Line mô phỏng{" "}
+        {prediction.handicap} • Độ tin cậy {prediction.confidence}%
       </p>
     </div>
   );
 }
 
-function CompactProbability({ label, value }: { label: string; value: number }) {
+function CompactProbability({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
   return (
     <div className="rounded-2xl bg-white p-3 dark:bg-black/20">
       <div className="flex items-center justify-between gap-2 text-sm font-black text-slate-950 dark:text-white">
@@ -906,16 +1104,37 @@ function CompactProbability({ label, value }: { label: string; value: number }) 
         <span className="text-amber-700 dark:text-amber-200">{value}%</span>
       </div>
       <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
-        <div className="h-full rounded-full bg-amber-500" style={{ width: `${value}%` }} />
+        <div
+          className="h-full rounded-full bg-amber-500"
+          style={{ width: `${value}%` }}
+        />
       </div>
     </div>
   );
 }
 
-function ModalTeam({ team, align = "left" }: { team?: Team; align?: "left" | "right" | "center" }) {
+function ModalTeam({
+  team,
+  align = "left",
+}: {
+  team?: Team;
+  align?: "left" | "right" | "center";
+}) {
   const content = (
-    <div className={cn("flex flex-col items-center", align === "right" ? "md:items-end" : align === "center" ? "items-center" : "md:items-start")}>
-      <TeamFlag flag={team?.flag} className="h-12 w-16 rounded-xl text-4xl sm:h-20 sm:w-28 sm:text-6xl" />
+    <div
+      className={cn(
+        "flex flex-col items-center",
+        align === "right"
+          ? "md:items-end"
+          : align === "center"
+            ? "items-center"
+            : "md:items-start",
+      )}
+    >
+      <TeamFlag
+        flag={team?.flag}
+        className="h-12 w-16 rounded-xl text-4xl sm:h-20 sm:w-28 sm:text-6xl"
+      />
       <h2 className="mt-2 max-w-full truncate text-center text-sm font-extrabold text-slate-950 dark:text-white md:text-left sm:mt-4 sm:text-lg">
         {team?.name ?? "TBD"}
       </h2>
@@ -925,14 +1144,21 @@ function ModalTeam({ team, align = "left" }: { team?: Team; align?: "left" | "ri
   if (!team) return content;
 
   return (
-    <Link href={`/teams/${getTeamSlug(team)}`} className="transition hover:opacity-80">
+    <Link
+      href={`/teams/${getTeamSlug(team)}`}
+      className="transition hover:opacity-80"
+    >
       {content}
     </Link>
   );
 }
 
 function openGoogleCalendar(match: Match, teamsById: Map<string, Team>) {
-  window.open(buildGoogleCalendarUrl(match, teamsById), "_blank", "noopener,noreferrer");
+  window.open(
+    buildGoogleCalendarUrl(match, teamsById),
+    "_blank",
+    "noopener,noreferrer",
+  );
 }
 
 function buildGoogleCalendarUrl(match: Match, teamsById: Map<string, Team>) {
@@ -945,7 +1171,7 @@ function buildGoogleCalendarUrl(match: Match, teamsById: Map<string, Team>) {
     text: `World Cup 2026: ${home} vs ${away}`,
     dates: `${start}/${end}`,
     details: `${match.stage}${match.group ? ` - Bảng ${match.group}` : ""}`,
-    location: hasKnownMatchLocation(match) ? formatMatchLocation(match) : ""
+    location: hasKnownMatchLocation(match) ? formatMatchLocation(match) : "",
   });
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
@@ -960,7 +1186,10 @@ function downloadMatchIcs(match: Match, teamsById: Map<string, Team>) {
     "PRODID:-//WC2026 Dashboard//Match Reminder//VI",
     "BEGIN:VEVENT",
     `UID:${match.id}@wc2026.local`,
-    `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")}`,
+    `DTSTAMP:${new Date()
+      .toISOString()
+      .replace(/[-:]/g, "")
+      .replace(/\.\d{3}/, "")}`,
     `DTSTART:${toCalendarUtcDate(match.date, match.time)}`,
     `DTEND:${toCalendarUtcDate(match.date, match.time, 2)}`,
     `SUMMARY:World Cup 2026: ${home} vs ${away}`,
@@ -968,7 +1197,7 @@ function downloadMatchIcs(match: Match, teamsById: Map<string, Team>) {
     `LOCATION:${hasKnownMatchLocation(match) ? formatMatchLocation(match) : ""}`,
     ...buildIcsAlarms(),
     "END:VEVENT",
-    "END:VCALENDAR"
+    "END:VCALENDAR",
   ].join("\r\n");
 
   const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
@@ -983,7 +1212,10 @@ function downloadMatchIcs(match: Match, teamsById: Map<string, Team>) {
 function toCalendarUtcDate(date: string, time: string, plusHours = 0) {
   const utcTime = new Date(`${date}T${time}:00+07:00`);
   utcTime.setHours(utcTime.getHours() + plusHours);
-  return utcTime.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  return utcTime
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}/, "");
 }
 
 function buildIcsAlarms() {
@@ -997,7 +1229,7 @@ function buildIcsAlarms() {
     "TRIGGER:-PT15M",
     "ACTION:DISPLAY",
     "DESCRIPTION:World Cup 2026 bắt đầu sau 15 phút",
-    "END:VALARM"
+    "END:VALARM",
   ];
 }
 
@@ -1005,6 +1237,6 @@ function formatFullDate(date: string) {
   return new Intl.DateTimeFormat("vi-VN", {
     day: "2-digit",
     month: "2-digit",
-    year: "numeric"
+    year: "numeric",
   }).format(new Date(`${date}T00:00:00`));
 }
