@@ -52,6 +52,7 @@ export type Match = {
   city: string;
   country: string;
   status: MatchStatus;
+  matchUrl?: string;
 };
 
 export type Standing = {

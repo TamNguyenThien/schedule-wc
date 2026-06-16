@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Calendar, CalendarDays, ChevronDown, Clock, Download, Flame, Grid2X2, Heart, List, Search, Star, Table2, Trophy, X } from "lucide-react";
+import { Calendar, CalendarDays, ChevronDown, Clock, Download, ExternalLink, Flame, Grid2X2, Heart, List, Radio, Search, Star, Table2, Trophy, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import EmptyState from "./EmptyState";
@@ -21,6 +21,7 @@ type UserPrediction = { home: string; away: string };
 type UserPredictions = Record<string, UserPrediction>;
 
 const userPredictionsKey = "wc2026.userPredictions";
+const fallbackLiveMatchUrl = "https://vtvgo.vn/channel/kenh-chinh-thuc-1,13_nb.html";
 
 export default function ScheduleBoard({
   matches,
@@ -785,9 +786,26 @@ export function MatchDetailModal({
             </button>
           </div>
         </div>
+        {match.status === "live" && (
+          <LiveMatchLink match={match} />
+        )}
       </div>
     </div>,
     document.body
+  );
+}
+
+function LiveMatchLink({ match }: { match: Match }) {
+  const className =
+    "mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 text-sm font-black text-white shadow-glow transition hover:bg-red-700 sm:mt-6 sm:min-h-14 sm:text-base";
+  const liveMatchUrl = match.matchUrl ?? fallbackLiveMatchUrl;
+
+  return (
+    <a href={liveMatchUrl} target="_blank" rel="noreferrer" className={className}>
+      <Radio className="h-5 w-5" />
+      Mở link trận đấu
+      <ExternalLink className="h-4 w-4" />
+    </a>
   );
 }
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CalendarDays, Clock, Download, Heart, MapPin, Share2, Star, Trophy, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, Download, ExternalLink, Heart, MapPin, Share2, Star, Trophy, Users } from "lucide-react";
 import EmptyState from "./EmptyState";
 import TeamFlag from "./TeamFlag";
 import ThemeToggle from "./ThemeToggle";
@@ -24,6 +24,8 @@ import { getTeamSlug } from "@/lib/teamProfiles";
 import { cn } from "@/lib/utils";
 import { getInitialMatches, teams as mockTeams } from "@/lib/scheduleData";
 import type { Match, Team } from "@/types/worldcup";
+
+const fallbackLiveMatchUrl = "https://vtvgo.vn/channel/kenh-chinh-thuc-1,13_nb.html";
 
 export default function MatchDetailPage({ matchId }: { matchId: string }) {
   const [matches, setMatches] = useState<Match[]>(() => getInitialMatches());
@@ -89,6 +91,7 @@ export default function MatchDetailPage({ matchId }: { matchId: string }) {
   }
 
   const isFavorite = favoriteMatchIds.has(match.id);
+  const liveMatchUrl = match.status === "live" ? match.matchUrl ?? fallbackLiveMatchUrl : match.matchUrl;
 
   return (
     <main className="relative min-h-screen py-6">
@@ -100,6 +103,17 @@ export default function MatchDetailPage({ matchId }: { matchId: string }) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <BackLink />
           <div className="flex flex-wrap gap-2">
+            {liveMatchUrl && (
+              <Link
+                href={liveMatchUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-11 items-center gap-2 rounded-xl border border-red-400/30 bg-red-500/15 px-4 text-sm font-black text-red-200 transition hover:bg-red-500/25"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Mở link trận
+              </Link>
+            )}
             <ActionButton onClick={() => openGoogleCalendar(match, teamsById)} icon={CalendarDays}>
               Google Calendar
             </ActionButton>

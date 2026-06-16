@@ -1,4 +1,4 @@
-import { Heart, MapPin } from "lucide-react";
+import { ExternalLink, Heart, MapPin, Radio } from "lucide-react";
 import Link from "next/link";
 import { formatMatchLocation } from "@/lib/matchDetails";
 import { getMatchPrediction } from "@/lib/matchPredictions";
@@ -19,10 +19,12 @@ type MatchCardProps = {
 };
 
 const statusLabel = {
-  upcoming: "Upcoming",
-  live: "Live",
-  finished: "Finished"
+  upcoming: "Sắp đấu",
+  live: "Đang diễn ra",
+  finished: "Đã xong"
 };
+
+const fallbackLiveMatchUrl = "https://vtvgo.vn/channel/kenh-chinh-thuc-1,13_nb.html";
 
 export default function MatchCard({
   match,
@@ -56,12 +58,13 @@ export default function MatchCard({
             {match.group && <span className="rounded-full bg-cyan-300/10 px-2 py-1 text-cyan-100">Group {match.group}</span>}
             <span
               className={cn(
-                "rounded-full px-2 py-1 text-sm font-bold uppercase",
+                "inline-flex items-center gap-1 rounded-full px-2 py-1 text-sm font-bold uppercase",
                 match.status === "live" && "bg-red-500/20 text-red-200",
                 match.status === "finished" && "bg-emerald-500/5 text-emerald-200",
                 match.status === "upcoming" && "bg-white/10 text-slate-200"
               )}
             >
+              {match.status === "live" && <span className="h-2 w-2 rounded-full bg-red-400 shadow-[0_0_12px_rgba(248,113,113,0.9)]" />}
               {statusLabel[match.status]}
             </span>
           </div>
@@ -117,8 +120,29 @@ export default function MatchCard({
           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-trophy-300" />
           <span>{formatMatchLocation(match)}</span>
         </div>
+        {match.status === "live" && <LiveMatchAction match={match} />}
       </div>
     </article>
+  );
+}
+
+function LiveMatchAction({ match }: { match: Match }) {
+  const className =
+    "mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 text-sm font-black text-white shadow-glow transition hover:bg-red-700";
+  const liveMatchUrl = match.matchUrl ?? fallbackLiveMatchUrl;
+
+  return (
+    <a
+      href={liveMatchUrl}
+      target="_blank"
+      rel="noreferrer"
+      onClick={(event) => event.stopPropagation()}
+      className={className}
+    >
+      <Radio className="h-4 w-4" />
+      Xem trận đang diễn ra
+      <ExternalLink className="h-4 w-4" />
+    </a>
   );
 }
 
