@@ -9,6 +9,7 @@ import ScheduleBoard from "./ScheduleBoard";
 import GroupStandings from "./GroupStandings";
 import FavoriteMatches from "./FavoriteMatches";
 import FavoriteTeams from "./FavoriteTeams";
+import InstallPwaPrompt from "./InstallPwaPrompt";
 import LoadingState from "./LoadingState";
 import { calculateStandings } from "@/lib/calculateStandings";
 import { fetchWorldCupData } from "@/lib/clientApi";
@@ -154,6 +155,7 @@ export default function WorldCupDashboard() {
       <div className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
         <ThemeToggle />
       </div>
+      <InstallPwaPrompt />
       <footer className="relative z-10 mt-12 border-t border-white/5 px-4 py-8 text-center text-sm font-semibold uppercase tracking-wide text-slate-500/70">
         © 2026 FIFA WORLD CUP SCHEDULE DASHBOARD
       </footer>
