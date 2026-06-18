@@ -111,9 +111,11 @@ function formatVietnamDateTime(utcDate: string) {
   }).formatToParts(date);
   const value = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
 
+  const hour = value("hour") === "24" ? "00" : value("hour");
+
   return {
     date: `${value("year")}-${value("month")}-${value("day")}`,
-    time: `${value("hour")}:${value("minute")}`
+    time: `${hour}:${value("minute")}`
   };
 }
 

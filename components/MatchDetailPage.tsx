@@ -21,6 +21,7 @@ import {
 } from "@/lib/matchDetails";
 import { getMatchPrediction, type MatchPrediction } from "@/lib/matchPredictions";
 import { getTeamSlug } from "@/lib/teamProfiles";
+import { formatMatchTime } from "@/lib/matchTime";
 import { cn } from "@/lib/utils";
 import { getInitialMatches, teams as mockTeams } from "@/lib/scheduleData";
 import type { Match, Team } from "@/types/worldcup";
@@ -156,7 +157,7 @@ export default function MatchDetailPage({ matchId }: { matchId: string }) {
               </div>
               <div className="mt-3 inline-flex items-center gap-2 text-sm font-black text-trophy-300">
                 <Clock className="h-5 w-5" />
-                {match.time}
+                {formatMatchTime(match.time)}
               </div>
             </div>
             <DetailTeam team={away} />

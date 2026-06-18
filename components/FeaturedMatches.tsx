@@ -5,6 +5,7 @@ import { cn, formatDate } from "@/lib/utils";
 import type { Match, Team } from "@/types/worldcup";
 import { Clock3, Heart, RefreshCw } from "lucide-react";
 import { getMatchPrediction } from "@/lib/matchPredictions";
+import { formatMatchTime, getMatchDateTime } from "@/lib/matchTime";
 import { MatchDetailModal } from "./ScheduleBoard";
 import TeamFlag from "./TeamFlag";
 
@@ -181,7 +182,7 @@ function CompactFeaturedMatch({
         <CompactTeam name={away?.shortName ?? "TBD"} flag={away?.flag} align="right" />
       </div>
       <div className="mt-3 truncate text-center text-sm font-bold text-slate-400">
-        {formatDate(match.date)} • {match.time}
+        {formatDate(match.date)} • {formatMatchTime(match.time)}
       </div>
       {prediction && (
         <div className="mt-3 text-center">
@@ -239,7 +240,7 @@ function compareMatchDate(a: Match, b: Match) {
 }
 
 function getMatchTime(match: Match) {
-  return new Date(`${match.date}T${match.time}:00+07:00`);
+  return getMatchDateTime(match);
 }
 
 function getCountdownUnits(remaining: number) {

@@ -1,4 +1,5 @@
 import type { Match, Team } from "@/types/worldcup";
+import { getMatchDateTime as getNormalizedMatchDateTime, toCalendarUtcDate } from "./matchTime";
 
 export type TeamFormResult = "W" | "D" | "L";
 
@@ -13,7 +14,7 @@ export function getMatchTitle(match: Match, teamsById: Map<string, Team>) {
 }
 
 export function getMatchDateTime(match: Match) {
-  return new Date(`${match.date}T${match.time}:00+07:00`);
+  return getNormalizedMatchDateTime(match);
 }
 
 export function formatFullDateTime(match: Match) {
@@ -40,12 +41,6 @@ export function formatMatchLocation(match: Match) {
   const place = [city, country].filter(Boolean).join(", ");
 
   return [stadium, place].filter(Boolean).join(" • ");
-}
-
-export function toCalendarUtcDate(date: string, time: string, plusHours = 0) {
-  const utcTime = new Date(`${date}T${time}:00+07:00`);
-  utcTime.setHours(utcTime.getHours() + plusHours);
-  return utcTime.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 }
 
 export function buildGoogleCalendarUrl(match: Match, teamsById: Map<string, Team>) {

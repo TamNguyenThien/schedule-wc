@@ -3,6 +3,7 @@ import Link from "next/link";
 import { formatMatchLocation } from "@/lib/matchDetails";
 import { getMatchPrediction } from "@/lib/matchPredictions";
 import { getTeamSlug } from "@/lib/teamProfiles";
+import { formatMatchTime } from "@/lib/matchTime";
 import { formatDate, cn } from "@/lib/utils";
 import type { Match, Team } from "@/types/worldcup";
 import ScorePredictionInput from "./ScorePredictionInput";
@@ -93,7 +94,7 @@ export default function MatchCard({
 
       <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-3 text-sm text-slate-300 sm:mt-5">
         <div className="font-bold text-white">
-          {formatDate(match.date)} • {match.time}
+          {formatDate(match.date)} • {formatMatchTime(match.time)}
         </div>
         {(prediction || onPredictionChange) && (
           <div className="mt-3 flex flex-col items-stretch gap-2 rounded-xl bg-white/5 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">

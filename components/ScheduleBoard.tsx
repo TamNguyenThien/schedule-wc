@@ -33,6 +33,11 @@ import {
   getMatchPrediction,
   type MatchPrediction,
 } from "@/lib/matchPredictions";
+import {
+  compareMatchesByDateTime,
+  formatMatchTime,
+  toCalendarUtcDate,
+} from "@/lib/matchTime";
 import type { BracketMatch, Match, Team } from "@/types/worldcup";
 
 type ScheduleMode = "all" | "date" | "knockout";
@@ -174,11 +179,7 @@ export default function ScheduleBoard({
           matchesFavoriteTeams
         );
       })
-      .sort(
-        (a, b) =>
-          `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`) ||
-          a.matchNumber - b.matchNumber,
-      );
+      .sort(compareMatchesByDateTime);
   }, [
     favoriteTeamIds,
     favoriteTeamsOnly,
@@ -466,6 +467,7 @@ function ScheduleTable({
 }) {
   const groups = groupMatchesByDate(matches);
   const teams = Array.from(teamsById.values());
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const mobileTodayGroupRef = useRef<HTMLElement | null>(null);
   const desktopTodayGroupRef = useRef<HTMLTableRowElement | null>(null);
 
@@ -485,8 +487,17 @@ function ScheduleTable({
 
       window.requestAnimationFrame(() => {
         window.requestAnimationFrame(() => {
-          const top = target.getBoundingClientRect().top + window.scrollY;
-          window.scrollTo({
+          const container = scrollContainerRef.current;
+          if (!container) return;
+
+          const offset = isDesktop ? 16 : 72;
+          const top =
+            target.getBoundingClientRect().top -
+            container.getBoundingClientRect().top +
+            container.scrollTop -
+            offset;
+
+          container.scrollTo({
             top: Math.max(top, 0),
             behavior: "auto",
           });
@@ -500,7 +511,10 @@ function ScheduleTable({
   }, [autoScrollReady, groups.length, todayDate]);
 
   return (
-    <>
+    <div
+      ref={scrollContainerRef}
+      className="max-h-[72vh] overflow-y-auto overscroll-contain rounded-[24px] pr-1 md:max-h-[68vh]"
+    >
       <div className="grid gap-4 md:hidden">
         {groups.map((group) => (
           <section
@@ -510,10 +524,10 @@ function ScheduleTable({
           >
             <div
               className={cn(
-                "sticky top-2 z-20 flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-black shadow-glass backdrop-blur",
+                "sticky top-0 z-20 flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-black shadow-glass backdrop-blur",
                 group.date === todayDate
-                  ? "border-rose-500/30 bg-rose-700 text-white"
-                  : "border-slate-200 bg-white/90 text-slate-950 dark:border-white/10 dark:bg-slate-950/90 dark:text-white",
+                  ? "border-rose-500/30 bg-rose-700 !text-white dark:text-white"
+                  : "border-slate-200 bg-white text-slate-950 dark:border-white/10 dark:bg-slate-950/90 dark:text-white",
               )}
             >
               <span>{formatFullDate(group.date)}</span>
@@ -608,7 +622,7 @@ function ScheduleTable({
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center gap-2 font-bold text-slate-950 dark:text-white">
                           <Clock className="h-5 w-5 text-trophy-700 dark:text-trophy-300" />
-                          {match.time}
+                          {formatMatchTime(match.time)}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -682,7 +696,7 @@ function ScheduleTable({
           </table>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -938,7 +952,7 @@ export function MatchDetailModal({
             </div>
             <div className="mt-2 inline-flex items-center gap-1.5 text-sm font-bold text-trophy-700 dark:text-trophy-300 sm:mt-3 sm:gap-2 sm:text-base">
               <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
-              {match.time}
+              {formatMatchTime(match.time)}
             </div>
           </div>
           <ModalTeam team={away} align="center" />
@@ -960,7 +974,7 @@ export function MatchDetailModal({
               Thời gian (Địa phương)
             </h3>
             <p className="mt-2 text-base font-extrabold text-slate-950 dark:text-white sm:text-lg">
-              {formatFullDate(match.date)} {match.time}
+              {formatFullDate(match.date)} {formatMatchTime(match.time)}
             </p>
           </div>
           <div>
@@ -1207,15 +1221,6 @@ function downloadMatchIcs(match: Match, teamsById: Map<string, Team>) {
   link.download = `wc2026-${match.matchNumber}.ics`;
   link.click();
   URL.revokeObjectURL(url);
-}
-
-function toCalendarUtcDate(date: string, time: string, plusHours = 0) {
-  const utcTime = new Date(`${date}T${time}:00+07:00`);
-  utcTime.setHours(utcTime.getHours() + plusHours);
-  return utcTime
-    .toISOString()
-    .replace(/[-:]/g, "")
-    .replace(/\.\d{3}/, "");
 }
 
 function buildIcsAlarms() {
